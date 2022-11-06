@@ -1,0 +1,19 @@
+h1 {
+    font-family: 'Italiana', serif;
+}
+
+h2 {
+    font-family: 'Fredericka the Great', cursive;
+}
+
+h3 {
+    font-family: 'Dancing Script', cursive;
+}
+
+ul.conflict_resolution, ul.renewing_connections {
+    list-style-type: none;
+}
+
+ul.healthy_relationship_essentials {
+    list-style-type: 1;
+}
