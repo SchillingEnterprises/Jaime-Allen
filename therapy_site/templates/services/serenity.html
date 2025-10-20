@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ optimized_content.title }} - Jaime Allen{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1>{{ optimized_content.title }}</h1>
+                <p class="lead">Find peace and acceptance in your relationships</p>
+            </div>
+
+            <!-- Serenity Principles -->
+            <div class="ai-optimized-card">
+                <div class="card-body">
+                    <h3><i class="fas fa-peace me-2"></i>Coming to Terms with Serenity from Others' Actions</h3>
+
+                    <div class="serenity-principles">
+                        <div class="principle-item mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="principle-icon me-3">
+                                    <i class="fas fa-brain fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h5>Accept What You Cannot Change</h5>
+                                    <p class="mb-0">Recognize that you cannot control others' actions, only your responses. Focus your energy where you have influence.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="principle-item mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="principle-icon me-3">
+                                    <i class="fas fa-heart fa-2x text-danger"></i>
+                                </div>
+                                <div>
+                                    <h5>Practice Detachment with Love</h5>
+                                    <p class="mb-0">Learn to care deeply without becoming emotionally entangled in outcomes you cannot control.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="principle-item mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="principle-icon me-3">
+                                    <i class="fas fa-hourglass-half fa-2x text-warning"></i>
+                                </div>
+                                <div>
+                                    <h5>Embrace the Process</h5>
+                                    <p class="mb-0">Understand that serenity often comes through gradual acceptance rather than immediate resolution.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="principle-item mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="principle-icon me-3">
+                                    <i class="fas fa-balance-scale fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h5>Find Your Center</h5>
+                                    <p class="mb-0">Develop inner peace that remains steady regardless of external circumstances or others' behaviors.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Serenity Practices -->
+            <div class="ai-optimized-card mt-4">
+                <div class="card-body">
+                    <h3><i class="fas fa-spa me-2"></i>Daily Serenity Practices</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="practice-card p-3 border rounded h-100">
+                                <h6>Mindful Breathing</h6>
+                                <p class="mb-0 small">When stressed about others' actions, focus on your breath to center yourself.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="practice-card p-3 border rounded h-100">
+                                <h6>Gratitude Journaling</h6>
+                                <p class="mb-0 small">Focus on what you're thankful for rather than what you cannot change.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="practice-card p-3 border rounded h-100">
+                                <h6>Boundary Setting</h6>
+                                <p class="mb-0 small">Clearly define what you will and won't accept from others.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="practice-card p-3 border rounded h-100">
+                                <h6>Letting Go Rituals</h6>
+                                <p class="mb-0 small">Create symbolic practices to release attachment to specific outcomes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Serenity Prayer Section -->
+            <div class="ai-optimized-card mt-4 bg-light">
+                <div class="card-body text-center">
+                    <blockquote class="blockquote">
+                        <p class="mb-0"><i>"God, grant me the serenity to accept the things I cannot change, courage to change the things I can, and wisdom to know the difference."</i></p>
+                        <footer class="blockquote-footer mt-2">Reinhold Niebuhr</footer>
+                    </blockquote>
+                </div>
+            </div>
+
+            <!-- AI Suggestions -->
+            {% if ai_suggestions %}
+            <div class="ai-suggestion mt-4">
+                <h4><i class="fas fa-robot me-2"></i>AI-Enhanced Serenity Guidance</h4>
+                <div class="row">
+                    {% for suggestion in ai_suggestions %}
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-dove text-info me-2"></i>
+                            <span>{{ suggestion }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.principle-item {
+    transition: transform 0.3s ease;
+    padding: 1rem;
+    border-radius: 10px;
+}
+.principle-item:hover {
+    transform: translateY(-3px);
+    background-color: #f8f9fa;
+}
+.practice-card {
+    transition: all 0.3s ease;
+}
+.practice-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
