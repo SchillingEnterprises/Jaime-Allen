@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Professional relationship therapy services with AI-enhanced support">
+    <meta name="keywords" content="therapy, relationship counseling, mental health, AI support">
+    <meta name="author" content="Jaime Allen, AMFT">
+
+    <title>{% block title %}Relationship Therapy & Counseling - Jaime Allen{% endblock %}</title>
+
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Italiana&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    {% load static %}
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+
+    <!-- AI Configuration -->
+    <script>
+        window.aiConfig = {
+            enabled: {{ ai_enabled|yesno:"true,false" }},
+            chatEndpoint: "{% url 'ai_chat' %}"
+        };
+    </script>
+</head>
+<body>
+    <!-- AI Chat Bot -->
+    {% if ai_enabled %}
+    <div id="ai-chat-widget" class="ai-chat-wrapper">
+        <div class="ai-chat-container">
+            <div class="ai-chat-header">
+                <h6>Therapy Assistant</h6>
+                <button class="ai-close-btn">&times;</button>
+            </div>
+            <div class="ai-chat-messages"></div>
+            <div class="ai-chat-input">
+                <input type="text" placeholder="Type your message..." id="ai-message-input">
+                <button id="ai-send-btn">Send</button>
+            </div>
+        </div>
+        <button id="ai-chat-toggle" class="btn btn-primary">
+            <i class="ai-icon">💬</i>
+        </button>
+    </div>
+    {% endif %}
+
+    {% include 'includes/header.html' %}
+    {% include 'includes/navigation.html' %}
+
+    <main class="container-fluid">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {% include 'includes/footer.html' %}
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% if ai_enabled %}
+    <script src="{% static 'js/ai-chatbot.js' %}"></script>
+    {% endif %}
+    <script src="{% static 'js/main.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
