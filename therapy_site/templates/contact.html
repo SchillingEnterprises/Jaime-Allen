@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact - Jaime Allen Therapy{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="text-center mb-5">Contact Jaime Allen</h1>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="ai-optimized-card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-map-marker-alt fa-2x text-primary mb-3"></i>
+                            <h5>Location</h5>
+                            <p class="mb-0">Los Angeles, California</p>
+                            <small class="text-muted">Serving clients throughout California via telehealth</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="ai-optimized-card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock fa-2x text-primary mb-3"></i>
+                            <h5>Session Hours</h5>
+                            <p class="mb-0">By appointment</p>
+                            <small class="text-muted">Flexible scheduling available</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-optimized-card">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">Get in Touch</h3>
+                    <p class="text-center">For appointments and inquiries, please reach out through your preferred method:</p>
+                    
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <i class="fas fa-envelope fa-2x text-primary mb-2"></i>
+                            <h6>Email</h6>
+                            <p class="mb-0">[Email protected]</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <i class="fas fa-phone fa-2x text-primary mb-2"></i>
+                            <h6>Phone</h6>
+                            <p class="mb-0">[Phone number]</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <i class="fas fa-calendar fa-2x text-primary mb-2"></i>
+                            <h6>Consultation</h6>
+                            <p class="mb-0">Free 15-minute consultation available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if ai_enabled %}
+            <div class="ai-suggestion mt-4 text-center">
+                <h4>Need Immediate Support?</h4>
+                <p class="mb-0">Our AI assistant is available 24/7 to provide guidance and support between sessions.</p>
+                <button class="btn btn-outline-light mt-2" onclick="document.getElementById('ai-chat-toggle').click()">
+                    Chat with AI Assistant
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
