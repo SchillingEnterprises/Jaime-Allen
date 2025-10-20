@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ optimized_content.title }} - Jaime Allen{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1>{{ optimized_content.title }}</h1>
+                <p class="lead">Develop skills to resolve conflicts with empathy and understanding</p>
+            </div>
+
+            <!-- Main Content -->
+            <div class="ai-optimized-card">
+                <div class="card-body">
+                    <h3><i class="fas fa-hands-helping me-2"></i>Conflict Resolution Solutions with Empathy</h3>
+                    <ul class="list-unstyled">
+                        <li class="mb-3 p-3 border-start border-4 border-primary">
+                            <strong>Establish Boundaries That Protect Not That Wedge The Relationship</strong>
+                            <p class="mb-0 text-muted">Create healthy boundaries that strengthen rather than separate</p>
+                        </li>
+                        <li class="mb-3 p-3 border-start border-4 border-success">
+                            <strong>Solve the Real Root Issue or Cause</strong>
+                            <p class="mb-0 text-muted">Identify and address underlying issues rather than surface symptoms</p>
+                        </li>
+                        <li class="mb-3 p-3 border-start border-4 border-info">
+                            <strong>Agree to Disagree</strong>
+                            <p class="mb-0 text-muted">Respect differences while maintaining connection</p>
+                        </li>
+                        <li class="mb-3 p-3 border-start border-4 border-warning">
+                            <strong>Compromise | Reconciling</strong>
+                            <p class="mb-0 text-muted">Find middle ground and restore harmony</p>
+                        </li>
+                        <li class="mb-3 p-3 border-start border-4 border-secondary">
+                            <strong>Smoothing | Accommodating</strong>
+                            <p class="mb-0 text-muted">Adapt and adjust for relationship harmony</p>
+                        </li>
+                        <li class="mb-3 p-3 border-start border-4 border-danger">
+                            <strong>Problem Solving | Collaboration | Confronting</strong>
+                            <p class="mb-0 text-muted">Work together to find mutually beneficial solutions</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- AI Suggestions -->
+            {% if ai_suggestions %}
+            <div class="ai-suggestion mt-4">
+                <h4><i class="fas fa-robot me-2"></i>AI-Enhanced Suggestions</h4>
+                <div class="row">
+                    {% for suggestion in ai_suggestions %}
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            <span>{{ suggestion }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Additional Resources -->
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <div class="ai-optimized-card">
+                        <div class="card-body">
+                            <h5>When to Seek Help</h5>
+                            <ul>
+                                <li>Conflicts become frequent and intense</li>
+                                <li>Communication breaks down completely</li>
+                                <li>Resentment builds over time</li>
+                                <li>You feel stuck in the same patterns</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="ai-optimized-card">
+                        <div class="card-body">
+                            <h5>Expected Outcomes</h5>
+                            <ul>
+                                <li>Improved communication skills</li>
+                                <li>Healthier conflict patterns</li>
+                                <li>Stronger emotional connection</li>
+                                <li>Renewed trust and understanding</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
