@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ optimized_content.title }} - Jaime Allen{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1>{{ optimized_content.title }}</h1>
+                <p class="lead">Navigate relationship stages with confidence and understanding</p>
+            </div>
+
+            <!-- Essentials Section -->
+            <div class="ai-optimized-card">
+                <div class="card-body">
+                    <h3><i class="fas fa-heart me-2"></i>Essentials for Healthy Relationships</h3>
+                    <ol class="list-group list-group-numbered">
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">Open Communication</div>
+                                Honest and transparent dialogue without fear of judgment
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">Listening With Feelings Being Heard</div>
+                                Active listening that validates emotions and experiences
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">Work Through Disagreements</div>
+                                Constructive conflict resolution that strengthens bonds
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">Mutual Intimacy</div>
+                                Emotional, physical, and spiritual connection
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">Trust</div>
+                                Foundation of reliability and emotional safety
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Relationship Stages -->
+            <div class="ai-optimized-card mt-4">
+                <div class="card-body">
+                    <h3><i class="fas fa-road me-2"></i>Understanding Relationship Stages</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="stage-card p-3 border rounded">
+                                <h5>1. Romance Stage</h5>
+                                <p class="mb-0">The initial infatuation period filled with excitement and discovery</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stage-card p-3 border rounded">
+                                <h5>2. Power Struggle</h5>
+                                <p class="mb-0">Differences emerge, requiring compromise and understanding</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stage-card p-3 border rounded">
+                                <h5>3. Stability</h5>
+                                <p class="mb-0">Finding balance and establishing healthy patterns</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stage-card p-3 border rounded">
+                                <h5>4. Commitment</h5>
+                                <p class="mb-0">Deep connection and conscious choice to build together</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stage-card p-3 border rounded">
+                                <h5>5. Co-Creation</h5>
+                                <p class="mb-0">Working together toward shared goals and dreams</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Suggestions -->
+            {% if ai_suggestions %}
+            <div class="ai-suggestion mt-4">
+                <h4><i class="fas fa-robot me-2"></i>AI-Enhanced Guidance</h4>
+                <div class="row">
+                    {% for suggestion in ai_suggestions %}
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            <span>{{ suggestion }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.stage-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+.stage-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
