@@ -1,0 +1,25 @@
+{
+  "name": "therapy-admin-assets",
+  "version": "1.0.0",
+  "description": "Django admin static files for therapy application",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Building admin assets'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": [
+    "django",
+    "admin",
+    "therapy",
+    "mental-health"
+  ],
+  "author": "Jaime Allen Therapy",
+  "license": "MIT",
+  "dependencies": {
+    "django-admin-interface": "^0.24.2"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24"
+  }
+}
