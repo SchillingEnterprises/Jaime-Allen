@@ -1,0 +1,103 @@
+/* Therapy-specific admin overrides */
+:root {
+    --therapy-primary: #4a90e2;
+    --therapy-secondary: #f39c12;
+    --therapy-accent: #e74c3c;
+    --therapy-text-dark: #2c3e50;
+    --therapy-bg-light: #ecf0f1;
+}
+
+/* Header theming */
+#header {
+    background: linear-gradient(135deg, var(--therapy-primary) 0%, #667eea 100%);
+}
+
+#branding h1 {
+    font-family: 'Italiana', serif;
+}
+
+#branding h1 a {
+    color: var(--header-link-color);
+    text-decoration: none;
+}
+
+/* Module theming */
+.module h2, .module caption, .inline-group h2 {
+    background: var(--therapy-secondary);
+    font-family: 'Inter', sans-serif;
+}
+
+.dashboard .module {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Button theming */
+.button.default, input[type=submit].default {
+    background: var(--therapy-primary);
+}
+
+.button.default:hover, input[type=submit].default:hover {
+    background: var(--therapy-secondary);
+}
+
+/* Form theming */
+.submit-row {
+    background: var(--therapy-bg-light);
+    border-radius: 4px;
+}
+
+/* AI-specific admin styles */
+.ai-config-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.sentiment-positive { color: #27ae60; }
+.sentiment-negative { color: #e74c3c; }
+.sentiment-neutral { color: #f39c12; }
+
+/* Therapy admin dashboard enhancements */
+.dashboard #content {
+    padding: 20px;
+}
+
+.dashboard .module table {
+    width: 100%;
+}
+
+.dashboard .module table th {
+    background: var(--therapy-primary);
+    color: white;
+}
+
+/* Custom widgets for therapy admin */
+.therapy-stats-widget {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--therapy-primary);
+}
+
+.therapy-stats-widget h3 {
+    color: var(--therapy-text-dark);
+    margin-bottom: 15px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Responsive admin improvements */
+@media (max-width: 767px) {
+    .therapy-admin-card {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    #header {
+        padding: 10px 15px;
+    }
+}
