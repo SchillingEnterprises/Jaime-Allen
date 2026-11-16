@@ -3,14 +3,14 @@
 import json
 import logging
 import uuid
-from typing import Any
+from typing import Any, ClassVar
 
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.utils.decorators import method_decorator
 
 from main.models import ClientInteraction, Service
 from therapy_app.ai_agents import content_optimizer, therapy_ai
@@ -77,7 +77,7 @@ def service_detail(request, service_slug):
 class AIChatView(View):
     """Validate chat requests, call the AI service, and persist successful exchanges."""
 
-    http_method_names = ["get", "post", "head", "options"]
+    http_method_names: ClassVar[list[str]] = ["get", "post", "head", "options"]
 
     def get(self, request):
         """Explain the supported method without accepting a state-changing GET."""
