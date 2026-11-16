@@ -12,10 +12,10 @@ from therapy_app.ai_agents import ContentOptimizer, TherapyAI
 
 
 class ServiceModelTests(TestCase):
-    """Verify the service catalogue's ordering, string representation, and constraints."""
+    """Verify the service catalogue's ordering, representation, and constraints."""
 
     def test_services_are_ordered_by_configured_position(self):
-        """The default model ordering should present the lowest order value first."""
+        """The default ordering should put the lowest position first."""
         later_service = Service.objects.create(
             title="Later service",
             slug="later-service",
@@ -34,7 +34,6 @@ class ServiceModelTests(TestCase):
         self.assertEqual(list(Service.objects.all()), [first_service, later_service])
 
     def test_string_representation_is_the_service_title(self):
-        """Admin pages and logs should display the human-readable service title."""
         service = Service.objects.create(
             title="Clear Communication",
             slug="clear-communication",
@@ -45,7 +44,6 @@ class ServiceModelTests(TestCase):
         self.assertEqual(str(service), "Clear Communication")
 
     def test_service_slug_must_be_unique(self):
-        """Duplicate service URLs must be rejected by the database constraint."""
         Service.objects.create(
             title="Original",
             slug="same-slug",
@@ -76,13 +74,13 @@ class ClientInteractionModelTests(TestCase):
 
 
 class AIChatViewTests(TestCase):
-    """Exercise the chat endpoint's validation, security, persistence, and failures."""
+    """Exercise validation, CSRF protection, persistence, and endpoint failures."""
 
     def setUp(self):
         self.endpoint = reverse("ai_chat")
 
     def post_json(self, payload):
-        """Submit JSON to the chat endpoint using Django's test client."""
+        """Submit a JSON object using Django's test HTTP client."""
         return self.client.post(
             self.endpoint,
             data=json.dumps(payload),
@@ -103,9 +101,7 @@ class AIChatViewTests(TestCase):
 
     def test_malformed_json_is_rejected(self):
         response = self.client.post(
-            self.endpoint,
-            data="{not-json",
-            content_type="application/json",
+            self.endpoint, data="{not-json", content_type="application/json"
         )
 
         self.assertEqual(response.status_code, 400)
@@ -160,7 +156,7 @@ class AIChatViewTests(TestCase):
         self.assertEqual(ClientInteraction.objects.count(), 0)
 
     def test_post_requires_a_csrf_token(self):
-        """The endpoint must retain Django's CSRF middleware protection."""
+        """The API must retain the CSRF middleware's default protection."""
         csrf_enforcing_client = Client(enforce_csrf_checks=True)
         response = csrf_enforcing_client.post(
             self.endpoint,
@@ -172,15 +168,14 @@ class AIChatViewTests(TestCase):
 
 
 class AIServiceTests(TestCase):
-    """Test the AI adapter without calling a live provider or loading ML models."""
+    """Test the AI adapter without a live provider or downloaded ML models."""
 
     def test_disabled_ai_returns_a_nonempty_supportive_fallback(self):
-        ai_service = TherapyAI(client=None)
-
         with override_settings(OPENAI_API_KEY=None):
-            # The injected None client makes this instance independent of settings.
-            self.assertFalse(ai_service.ai_enabled)
-            self.assertIn("listen", ai_service.generate_therapy_response("Hello"))
+            ai_service = TherapyAI(client=None)
+
+        self.assertFalse(ai_service.ai_enabled)
+        self.assertIn("listen", ai_service.generate_therapy_response("Hello"))
 
     def test_configured_client_response_is_returned(self):
         provider_client = Mock()
@@ -195,7 +190,7 @@ class AIServiceTests(TestCase):
         provider_client.chat.completions.create.assert_called_once()
 
     def test_sentiment_falls_back_when_no_model_is_configured(self):
-        ai_service = TherapyAI(client=None)
+        ai_service = TherapyAI(client=None, sentiment_analyzer=None)
 
         self.assertEqual(
             ai_service.analyze_sentiment("A sample message."),
