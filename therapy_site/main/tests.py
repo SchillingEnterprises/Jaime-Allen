@@ -251,3 +251,45 @@ class AIServiceTests(TestCase):
 
     def test_content_optimizer_handles_unknown_service_types(self):
         self.assertEqual(ContentOptimizer.optimize_content("unknown-service"), {})
+
+
+class PublicPageTests(TestCase):
+    """Verify the primary public pages render without hidden prerequisites."""
+
+    def test_homepage_renders_with_empty_service_catalogue(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "index.html")
+        self.assertContains(response, "New resources are taking shape.")
+        self.assertContains(response, "Skip to content")
+
+    def test_about_and_contact_pages_render(self):
+        for page_name in ("about", "contact"):
+            with self.subTest(page=page_name):
+                response = self.client.get(reverse(page_name))
+                self.assertEqual(response.status_code, 200)
+
+    def test_service_detail_renders_the_matching_service_template(self):
+        service = Service.objects.create(
+            title="Clear Communication",
+            slug="clear-communication",
+            description="Practice healthier communication habits.",
+            service_type="effective_communication",
+            is_active=True,
+        )
+
+        response = self.client.get(reverse("service_detail", args=[service.slug]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "services/effective_communication.html"
+        )
+        self.assertContains(response, "Practice Communication Skills")
+
+    def test_missing_service_returns_not_found(self):
+        response = self.client.get(
+            reverse("service_detail", args=["this-service-does-not-exist"])
+        )
+
+        self.assertEqual(response.status_code, 404)
