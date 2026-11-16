@@ -348,3 +348,20 @@ $RECYCLE.BIN/
 
 # Android studio 3.1+ serialized cache file
 
+
+
+# Python caches, virtual environments, local configuration, and generated test output
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/

@@ -1,20 +1,56 @@
-# Jaime Lynn Allen (JLA)
+# Jaime Allen Relationship Support Website
 
-A versatile, multi-modal toolkit for creative and analytical tasks. JLA provides a unified interface for audio processing, natural language understanding, and data analysis, making it an ideal Swiss Army knife for developers, artists, and researchers.
+A Django-powered website prototype for relationship education and communication-support services. The project includes a public service catalogue, service-detail pages, and an optional AI-assisted communication widget.
 
-[![PyPI version](https://img.shields.io/pypi/v/jla-toolkit.svg)](https://pypi.org/project/jla-toolkit/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## Scope and safety boundaries
 
-## Features
+- The AI widget is a communication-support aid, not therapy, diagnosis, treatment, emergency response, or a substitute for a qualified clinician.
+- The backend uses the local Ollama provider by default when configured. OpenAI is an optional provider and is not called unless explicitly selected with an API key.
+- Chat messages are not written to the application database unless `STORE_CHAT_INTERACTIONS=true` is deliberately configured.
+- The frontend should disclose which AI provider processes the message and obtain the appropriate consent before a user submits personal content.
+- This repository is a software prototype. Clinical, legal, privacy, and content review are required before production use.
 
-*   **🎤 Audio Suite:** Host, produce, and analyze audio streams. Includes tools for music generation, podcast editing, and vocal effect processing.
-*   **📝 NLP & Creativity:** Generate song lyrics, poetry, and prose with advanced language models. Perform sentiment analysis and thematic extraction.
-*   **🧠 Counseling & Sentiment Analysis:** A unique module for analyzing emotional tone in text, useful for mental health apps, customer feedback analysis, and conversational AI.
-*   **🐾 Animal Care Integration:** Connect with popular animal welfare APIs to manage shelter data, track adoption records, and analyze animal vocalizations.
+## Requirements
 
-## Installation
+- Python 3.12–3.14
+- Django 6.1.3
+- See `therapy_site/requirements.txt` for the complete pinned dependency set.
 
-Install the package directly from PyPI:
+## Local development
 
 ```bash
-pip install jla-toolkit
+cd therapy_site
+python -m venv .venv
+# Activate the environment, then:
+python -m pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env` and set a local secret. The project loads the local environment file in development. Never commit real secrets.
+
+```bash
+python manage.py migrate
+python manage.py runserver
+```
+
+Open the local server address printed by Django.
+
+## Quality checks
+
+From `therapy_site/`:
+
+```bash
+ruff check main/views.py main/tests.py therapy_app/settings.py therapy_app/ai_agents.py
+node --check static/js/ai-chatbot.js
+python -m compileall -q main therapy_app
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test --verbosity 2
+```
+
+GitHub Actions runs these checks on Python 3.12, 3.13, and 3.14.
+
+## Production considerations
+
+The current settings default to SQLite for local development. A production deployment needs a supported managed database, host-specific secrets, HTTPS, backups, monitoring, an appropriate privacy notice and retention policy, and provider-specific data-processing disclosures.
+
+The project is not ready to publish as a live clinical or therapy service until a qualified professional reviews the content and a responsible operator confirms the privacy, security, consent, and escalation workflows.
