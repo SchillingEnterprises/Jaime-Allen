@@ -50,6 +50,7 @@ def about(request):
     return render(request, "about.html", {"ai_enabled": therapy_ai.ai_enabled})
 
 
+@ensure_csrf_cookie
 def service_detail(request, service_slug):
     """Render the detail page for a service identified by its unique slug."""
     service = get_object_or_404(Service, slug=service_slug)
