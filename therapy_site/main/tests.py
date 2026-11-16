@@ -94,7 +94,11 @@ class AIChatViewTests(TestCase):
         self.assertEqual(response["Allow"], "POST")
 
     def test_non_json_content_type_is_rejected(self):
-        response = self.client.post(self.endpoint, data="message=hello")
+        response = self.client.post(
+            self.endpoint,
+            data="message=hello",
+            content_type="text/plain",
+        )
 
         self.assertEqual(response.status_code, 415)
         self.assertFalse(response.json()["success"])
