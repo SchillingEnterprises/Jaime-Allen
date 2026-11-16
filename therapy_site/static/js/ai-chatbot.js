@@ -16,6 +16,7 @@ class AIChatBot {
         this.closeButton = document.querySelector(".ai-close-btn");
         this.sendButton = document.getElementById("ai-send-btn");
         this.messageInput = document.getElementById("ai-message-input");
+        this.consentCheckbox = document.getElementById("ai-consent");
         this.messagesContainer = document.querySelector(".ai-chat-messages");
 
         if (!this.hasRequiredElements()) {
@@ -46,6 +47,7 @@ class AIChatBot {
             this.closeButton &&
             this.sendButton &&
             this.messageInput &&
+            this.consentCheckbox &&
             this.messagesContainer
         );
     }
@@ -108,6 +110,15 @@ class AIChatBot {
             return;
         }
 
+        if (!this.consentCheckbox.checked) {
+            this.addMessage(
+                "ai",
+                "Please review the provider disclosure and confirm consent before sending a message."
+            );
+            this.consentCheckbox.focus();
+            return;
+        }
+
         this.isSending = true;
         this.sendButton.disabled = true;
         this.addMessage("user", message);
@@ -122,7 +133,7 @@ class AIChatBot {
                     "Content-Type": "application/json",
                     "X-CSRFToken": this.getCSRFToken()
                 },
-                body: JSON.stringify({ message, session_id: this.sessionId })
+                body: JSON.stringify({ message, session_id: this.sessionId, consent: true })
             });
 
             const result = await response.json();
