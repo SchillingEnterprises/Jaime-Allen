@@ -22,9 +22,13 @@ concurrency:
 
 jobs:
   test:
-    name: Django checks and unit tests
+    name: Django checks and unit tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
     defaults:
       run:
         working-directory: therapy_site
@@ -39,7 +43,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
-          python-version: "3.13"
+          python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: therapy_site/requirements.txt
 

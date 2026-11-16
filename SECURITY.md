@@ -2,14 +2,23 @@
 
 ## Reporting a vulnerability
 
-Please do not publish suspected vulnerabilities, private client information, credentials, or sensitive request data in public issues.
+Do not publish suspected vulnerabilities, private client information, credentials, or sensitive request data in public issues. Use GitHub private vulnerability reporting when enabled or contact the maintainers privately.
 
-Use GitHub private vulnerability reporting for this repository when it is enabled. Otherwise contact the maintainers privately through GitHub. Include affected components, impact, and reproduction steps with secrets and personal information removed.
+## Sensitive messages and AI providers
 
-## Security-sensitive application data
+This application may process personal relationship or wellbeing messages. The default database behavior does not persist chat transcripts; storage is enabled only when `STORE_CHAT_INTERACTIONS=true` is explicitly configured. This does not prevent the selected AI provider from processing the message to generate a response.
 
-This application may process sensitive personal messages. Production deployments must use HTTPS, strong environment-provided secrets, restricted database access, backups, and a documented retention policy. Do not place real client information in development fixtures, issues, logs, screenshots, or test output.
+Before enabling the widget for the public:
+- Disclose which AI provider processes each message.
+- Obtain informed consent before transmission of personal content.
+- Define access, retention, deletion, backup, and incident-response practices.
+- Do not log message bodies, provider payloads, or personal content.
+- Keep real messages out of fixtures, issues, logs, screenshots, and CI artifacts.
 
-## Supported versions
+## Clinical and emergency boundaries
 
-The default branch is the primary maintenance line. Dependency and framework upgrades must be validated by the CI checks and reviewed for third-party compatibility before deployment.
+The AI widget is not a clinician, diagnostic system, treatment provider, crisis service, or emergency-response channel. Have a qualified professional review prompts, content, crisis language, and escalation instructions before production.
+
+## Supported framework
+
+The project should use supported Django security releases. CI pins Django 6.1.3 and checks the maintained Python modules across supported Python versions.
