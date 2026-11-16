@@ -82,7 +82,8 @@ class AIChatViewTests(TestCase):
 
     def post_json(self, payload):
         """Submit a JSON object using Django's test HTTP client."""
-        payload = {"consent": True, **payload}
+        if isinstance(payload, dict):
+            payload = {"consent": True, **payload}
         return self.client.post(
             self.endpoint,
             data=json.dumps(payload),
