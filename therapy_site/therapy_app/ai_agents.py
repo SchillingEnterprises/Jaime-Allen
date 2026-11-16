@@ -9,6 +9,7 @@ from typing import Any
 
 from django.conf import settings
 from openai import OpenAI
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,11 @@ class TherapyAI:
         self.client = client
         self.sentiment_analyzer = sentiment_analyzer
 
-        if self.client is None and settings.OPENAI_API_KEY:
+        if (
+            self.client is None
+            and settings.AI_PROVIDER == "openai"
+            and settings.OPENAI_API_KEY
+        ):
             try:
                 self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
             except Exception:
@@ -84,6 +89,8 @@ class TherapyAI:
     @property
     def ai_enabled(self) -> bool:
         """Return whether an AI provider client is configured."""
+        if settings.AI_PROVIDER == "ollama":
+            return bool(settings.OLLAMA_BASE_URL)
         return self.client is not None
 
     def analyze_sentiment(self, message: str) -> dict[str, Any]:
@@ -117,20 +124,39 @@ class TherapyAI:
             "Offer a compassionate, practical, non-judgmental response."
         )
 
+        messages = [
+            {"role": "system", "content": system_instructions},
+            {"role": "user", "content": user_prompt},
+        ]
+
         try:
-            completion = self.client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
-                messages=[
-                    {"role": "system", "content": system_instructions},
-                    {"role": "user", "content": user_prompt},
-                ],
-                max_completion_tokens=180,
-            )
-            response_text = completion.choices[0].message.content
+            if settings.AI_PROVIDER == "ollama":
+                provider_response = requests.post(
+                    f"{settings.OLLAMA_BASE_URL}/api/chat",
+                    json={
+                        "model": settings.OLLAMA_MODEL,
+                        "messages": messages,
+                        "stream": False,
+                        "options": {"temperature": 0.5},
+                    },
+                    timeout=(3, 45),
+                )
+                provider_response.raise_for_status()
+                response_text = provider_response.json().get("message", {}).get("content")
+            else:
+                completion = self.client.chat.completions.create(
+                    model=settings.OPENAI_MODEL,
+                    messages=messages,
+                    max_completion_tokens=180,
+                )
+                response_text = completion.choices[0].message.content
+
             if isinstance(response_text, str) and response_text.strip():
                 return response_text.strip()
-        except Exception:
+        except (requests.RequestException, ValueError):
             # Do not write user prompts or provider payloads to application logs.
+            logger.exception("Local AI provider request failed.")
+        except Exception:
             logger.exception("AI response generation failed.")
 
         return AI_FALLBACK_RESPONSE
