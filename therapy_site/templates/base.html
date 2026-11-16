@@ -1,51 +1,113 @@
-<!DOCTYPE html>
+{% load static %}
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f5f1">
+    <meta name="description" content="{% block meta_description %}Thoughtful relationship support, communication skills, and practical resources from Jaime Allen Therapy.{% endblock %}">
     <title>{% block title %}Jaime Allen Therapy{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Jaime Allen, LMFT</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'about' %}">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
-    <main>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
+            <div class="container site-container">
+                <a class="navbar-brand brand-lockup" href="{% url 'home' %}" aria-label="Jaime Allen Therapy home">
+                    <span class="brand-mark" aria-hidden="true">JA</span>
+                    <span class="brand-copy">
+                        <span class="brand-name">Jaime Allen</span>
+                        <span class="brand-description">Therapy &amp; Relationship Support</span>
+                    </span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#primaryNavigation" aria-controls="primaryNavigation"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="primaryNavigation">
+                    <ul class="navbar-nav ms-auto align-items-lg-center">
+                        <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#services">Services</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
+                        <li class="nav-item ms-lg-2"><a class="nav-link nav-contact-link" href="{% url 'contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-light text-center py-4 mt-5">
-        <div class="container">
-            <p>&copy; {% now "Y" %} Jaime Allen Therapy. All Rights Reserved.</p>
-            <p>
-                <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+    <footer class="site-footer">
+        <div class="container site-container">
+            <div class="footer-main">
+                <a class="footer-brand" href="{% url 'home' %}">Jaime Allen Therapy</a>
+                <p class="footer-note">A thoughtful space for learning, reflection, and connection.</p>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; {% now "Y" %} Jaime Allen Therapy</span>
+                <nav class="footer-links" aria-label="Footer navigation">
+                    <a href="{% url 'about' %}">About</a>
+                    <a href="{% url 'contact' %}">Contact</a>
+                </nav>
+            </div>
+            <p class="site-disclaimer">
+                Website information and automated tools are educational support only. They do not
+                establish a therapist-client relationship, provide diagnosis, or replace professional
+                care. This website is not an emergency or crisis service.
             </p>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% if ai_enabled %}
+    <div class="chat-launcher">
+        <button id="ai-chat-toggle" class="chat-toggle" type="button"
+                aria-controls="ai-chat-widget" aria-expanded="false">
+            <span aria-hidden="true">✦</span>
+            <span>Open support chat</span>
+        </button>
+    </div>
+
+    <section id="ai-chat-widget" class="chat-panel" aria-label="Automated support chat" hidden>
+        <div class="chat-panel-header">
+            <div>
+                <p class="chat-eyebrow">AUTOMATED SUPPORT</p>
+                <h2>Let’s start with a thought</h2>
+                <p class="chat-caption">A space to put words to what is on your mind. Messages are not saved by default.</p>
+            </div>
+            <button class="ai-close-btn" type="button" aria-label="Close support chat">×</button>
+        </div>
+        <div class="ai-chat-messages" aria-live="polite" aria-relevant="additions text"></div>
+        <div class="chat-composer">
+            {% csrf_token %}
+            <label class="visually-hidden" for="ai-message-input">Your message</label>
+            <textarea id="ai-message-input" rows="2" maxlength="2000"
+                      placeholder="Write a message…" autocomplete="off"></textarea>
+            <button id="ai-send-btn" type="button">Send</button>
+        </div>
+        <p class="chat-disclaimer">Automated support only — not therapy, clinical advice, or crisis support.</p>
+    </section>
+
+    <script>
+        window.aiConfig = {
+            enabled: true,
+            chatEndpoint: "{% url 'ai_chat' %}"
+        };
+    </script>
+    <script src="{% static 'js/ai-chatbot.js' %}" defer></script>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="{% static 'js/main.js' %}" defer></script>
 </body>
 </html>
