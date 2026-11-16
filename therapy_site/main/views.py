@@ -5,6 +5,7 @@ import logging
 import uuid
 from typing import Any
 
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views import View
@@ -145,12 +146,13 @@ class AIChatView(View):
         try:
             sentiment = therapy_ai.analyze_sentiment(user_message)
             ai_response = therapy_ai.generate_therapy_response(user_message)
-            ClientInteraction.objects.create(
-                session_id=session_id,
-                message=user_message,
-                sentiment=sentiment,
-                ai_response=ai_response,
-            )
+            if settings.STORE_CHAT_INTERACTIONS:
+                ClientInteraction.objects.create(
+                    session_id=session_id,
+                    message=user_message,
+                    sentiment=sentiment,
+                    ai_response=ai_response,
+                )
         except Exception:
             # Do not log request bodies or provider response data: messages may
             # contain personal information. The client receives a safe fallback.
