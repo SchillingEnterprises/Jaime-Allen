@@ -1,0 +1,40 @@
+name: Jaime static-site validation
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "index.html"
+      - "foyer_index.html"
+      - "website/**"
+      - "tests/test_static_site.py"
+      - ".github/workflows/static-site-validation.yml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "index.html"
+      - "foyer_index.html"
+      - "website/**"
+      - "tests/test_static_site.py"
+      - ".github/workflows/static-site-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jaime-static-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v6
+        with:
+          python-version: "3.12"
+      - name: Validate static project files and local links
+        run: python -m unittest discover -s tests -p 'test_static_site.py' -v
