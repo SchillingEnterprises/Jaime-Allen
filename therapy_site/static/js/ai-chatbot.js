@@ -1,8 +1,8 @@
 /**
- * Accessible, same-origin chat widget client.
+ * Accessible, same-origin support-chat widget.
  *
- * The endpoint is configured by the Django template through window.aiConfig.
- * User-provided text is inserted with textContent, never interpreted as HTML.
+ * The feature is enabled only when configured on the server. User input and
+ * provider output are rendered as text, never inserted as HTML.
  */
 class AIChatBot {
     constructor() {
@@ -10,7 +10,7 @@ class AIChatBot {
         this.isSending = false;
         this.sessionId = this.generateSessionId();
 
-        // Cache the required widget elements once rather than querying on every message.
+        // Cache the widget elements once; avoid repeated document-wide lookups.
         this.toggleButton = document.getElementById("ai-chat-toggle");
         this.chatWidget = document.getElementById("ai-chat-widget");
         this.closeButton = document.querySelector(".ai-close-btn");
@@ -19,31 +19,26 @@ class AIChatBot {
         this.messagesContainer = document.querySelector(".ai-chat-messages");
 
         if (!this.hasRequiredElements()) {
-            console.warn("AI chat widget markup is incomplete; chat initialization skipped.");
+            console.warn("Support chat markup is incomplete; widget initialization skipped.");
             return;
         }
 
         this.bindEvents();
         this.addMessage(
             "ai",
-            "Hello! I'm here to provide supportive listening and guidance. How can I help you today?"
+            "Hello. I can offer general, supportive communication prompts. What would be helpful to think through today?"
         );
     }
 
-    /**
-     * Return a unique client-side conversation identifier.
-     * This identifier is for conversation grouping, not authentication.
-     */
+    /** Generate a non-secret conversation grouping identifier. */
     generateSessionId() {
         if (window.crypto && typeof window.crypto.randomUUID === "function") {
             return `session_${window.crypto.randomUUID()}`;
         }
-
-        const randomSuffix = Math.random().toString(36).slice(2, 12);
-        return `session_${Date.now().toString(36)}_${randomSuffix}`;
+        return `session_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
     }
 
-    /** Check whether this page actually contains the full chat component. */
+    /** Confirm the expected markup exists before binding browser events. */
     hasRequiredElements() {
         return Boolean(
             this.toggleButton &&
@@ -55,7 +50,7 @@ class AIChatBot {
         );
     }
 
-    /** Register event handlers after the markup has been verified. */
+    /** Bind mouse, touch, and keyboard interactions. */
     bindEvents() {
         this.toggleButton.addEventListener("click", () => this.toggleChat());
         this.closeButton.addEventListener("click", () => this.closeChat());
@@ -69,26 +64,28 @@ class AIChatBot {
         });
     }
 
-    /** Open or close the chat panel and move keyboard focus appropriately. */
+    /** Open or close the panel and keep its accessibility state in sync. */
     toggleChat() {
         this.isOpen = !this.isOpen;
-        this.chatWidget.classList.toggle("open", this.isOpen);
+        this.chatWidget.hidden = !this.isOpen;
+        this.toggleButton.setAttribute("aria-expanded", String(this.isOpen));
+
         if (this.isOpen) {
             this.messageInput.focus();
+        } else {
+            this.toggleButton.focus();
         }
     }
 
-    /** Close the chat panel without discarding the current conversation. */
+    /** Close the panel and return keyboard focus to the launcher button. */
     closeChat() {
         this.isOpen = false;
-        this.chatWidget.classList.remove("open");
+        this.chatWidget.hidden = true;
+        this.toggleButton.setAttribute("aria-expanded", "false");
         this.toggleButton.focus();
     }
 
-    /**
-     * Send one validated message to the same-origin Django endpoint.
-     * The CSRF cookie is included because the server deliberately enforces CSRF.
-     */
+    /** Send a bounded message to Django using same-origin credentials and CSRF. */
     async sendMessage() {
         if (this.isSending) {
             return;
@@ -100,9 +97,14 @@ class AIChatBot {
             return;
         }
 
-        const chatEndpoint = window.aiConfig && window.aiConfig.chatEndpoint;
-        if (!chatEndpoint) {
-            this.addMessage("ai", "Chat is temporarily unavailable. Please try again later.");
+        if (message.length > 2_000) {
+            this.addMessage("ai", "Please keep your message to 2,000 characters or fewer.");
+            return;
+        }
+
+        const endpoint = window.aiConfig && window.aiConfig.chatEndpoint;
+        if (!endpoint) {
+            this.addMessage("ai", "Chat is not available right now. Please contact the practice directly.");
             return;
         }
 
@@ -113,27 +115,24 @@ class AIChatBot {
         this.showTypingIndicator();
 
         try {
-            const response = await fetch(chatEndpoint, {
+            const response = await fetch(endpoint, {
                 method: "POST",
                 credentials: "same-origin",
                 headers: {
                     "Content-Type": "application/json",
                     "X-CSRFToken": this.getCSRFToken()
                 },
-                body: JSON.stringify({
-                    message,
-                    session_id: this.sessionId
-                })
+                body: JSON.stringify({ message, session_id: this.sessionId })
             });
 
-            const responseData = await response.json();
-            if (!response.ok || !responseData.success) {
-                throw new Error("The chat endpoint returned an unsuccessful response.");
+            const result = await response.json();
+            if (!response.ok || !result.success || typeof result.response !== "string") {
+                throw new Error("The support chat request was unsuccessful.");
             }
 
-            this.addMessage("ai", responseData.response);
-        } catch (error) {
-            // Deliberately avoid logging message text or other user-provided content.
+            this.addMessage("ai", result.response);
+        } catch (_error) {
+            // Deliberately avoid logging the message or other personal information.
             this.addMessage(
                 "ai",
                 "I couldn't process that message just now. Please try again or contact the practice directly."
@@ -146,7 +145,7 @@ class AIChatBot {
         }
     }
 
-    /** Append a text-only message node, preventing user text from becoming HTML. */
+    /** Create a text-only message element. */
     addMessage(sender, messageText) {
         const messageElement = document.createElement("div");
         messageElement.className = `message ${sender}-message`;
@@ -168,14 +167,14 @@ class AIChatBot {
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
 
-    /** Add a non-interactive typing indicator while the request is in flight. */
+    /** Show a typing state without injecting an HTML string. */
     showTypingIndicator() {
         this.hideTypingIndicator();
 
         const indicator = document.createElement("div");
         indicator.id = "typing-indicator";
         indicator.className = "message ai-message typing";
-        indicator.setAttribute("aria-label", "Assistant is typing");
+        indicator.setAttribute("aria-label", "Assistant is responding");
 
         const bubble = document.createElement("div");
         bubble.className = "message-bubble";
@@ -192,30 +191,26 @@ class AIChatBot {
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
 
-    /** Remove an existing typing indicator, if one is present. */
+    /** Remove the current typing state, if present. */
     hideTypingIndicator() {
-        this.messagesContainer
-            .querySelector("#typing-indicator")
-            ?.remove();
+        this.messagesContainer.querySelector("#typing-indicator")?.remove();
     }
 
-    /** Return the readable CSRF token cookie expected by Django's middleware. */
+    /** Read Django's CSRF cookie or the standard hidden input fallback. */
     getCSRFToken() {
-        const tokenPrefix = "csrftoken=";
+        const prefix = "csrftoken=";
         const csrfCookie = document.cookie
             .split(";")
             .map((cookie) => cookie.trim())
-            .find((cookie) => cookie.startsWith(tokenPrefix));
+            .find((cookie) => cookie.startsWith(prefix));
 
         if (csrfCookie) {
-            return decodeURIComponent(csrfCookie.slice(tokenPrefix.length));
+            return decodeURIComponent(csrfCookie.slice(prefix.length));
         }
-
-        // Support pages that render Django's standard hidden CSRF form field.
         return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
     }
 
-    /** Format the local time for the message metadata label. */
+    /** Format a local-time label for a message. */
     getCurrentTime() {
         return new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -224,7 +219,7 @@ class AIChatBot {
     }
 }
 
-// Initialize only after the DOM is ready and the server enables the chat feature.
+/** Initialize only when the server-rendered page explicitly enables the feature. */
 document.addEventListener("DOMContentLoaded", () => {
     if (window.aiConfig && window.aiConfig.enabled) {
         window.aiChatBot = new AIChatBot();
