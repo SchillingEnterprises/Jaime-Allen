@@ -1,6 +1,7 @@
 """Unit and integration tests for service models and public HTTP endpoints."""
 
 import json
+import requests
 from unittest.mock import Mock, patch
 
 from django.db import IntegrityError
@@ -196,6 +197,31 @@ class AIServiceTests(TestCase):
 
         self.assertFalse(ai_service.ai_enabled)
         self.assertIn("listen", ai_service.generate_therapy_response("Hello"))
+
+    @override_settings(AI_PROVIDER="ollama", OLLAMA_BASE_URL="http://localhost:11434", OLLAMA_MODEL="qwen2.5:3b")
+    @patch("therapy_app.ai_agents.requests.post")
+    def test_ollama_provider_returns_local_model_response(self, mock_post):
+        mock_response = Mock()
+        mock_response.json.return_value = {"message": {"content": "A local response."}}
+        mock_post.return_value = mock_response
+        ai_service = TherapyAI(client=None)
+
+        response = ai_service.generate_therapy_response("Help me phrase a concern.")
+
+        self.assertEqual(response, "A local response.")
+        mock_post.assert_called_once()
+        self.assertIn("/api/chat", mock_post.call_args.args[0])
+        self.assertEqual(mock_post.call_args.kwargs["json"]["model"], "qwen2.5:3b")
+
+    @override_settings(AI_PROVIDER="ollama", OLLAMA_BASE_URL="http://localhost:11434")
+    @patch("therapy_app.ai_agents.requests.post")
+    def test_ollama_provider_falls_back_when_local_server_is_unavailable(self, mock_post):
+        mock_post.side_effect = requests.ConnectionError("offline")
+        ai_service = TherapyAI(client=None)
+
+        response = ai_service.generate_therapy_response("Help me communicate.")
+
+        self.assertIn("courage", response.lower())
 
     def test_configured_client_response_is_returned(self):
         provider_client = Mock()
