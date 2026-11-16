@@ -94,6 +94,11 @@ img{max-width:100%;height:auto}
 .message-bubble{padding:.7rem .9rem;border-radius:.9rem;background:#f0f2ec;color:var(--ink)}
 .user-message .message-bubble{background:var(--forest);color:#fff}
 .message-text{overflow-wrap:anywhere;font-size:.72rem;line-height:1.65}.message-time{margin-top:.25rem;opacity:.65;font-size:.52rem;text-align:right}
+.chat-provider-disclosure{max-width:320px;margin:.55rem 0 0;color:var(--muted);font-size:.58rem;line-height:1.55}
+.chat-consent{display:grid;grid-template-columns:auto 1fr;gap:.35rem .55rem;padding:.75rem .85rem .25rem;border-top:1px solid var(--line);color:var(--ink);font-size:.62rem;line-height:1.5}
+.chat-consent input{width:1rem;height:1rem;margin-top:.12rem;accent-color:var(--forest)}
+.chat-consent label{cursor:pointer}
+.chat-consent p{grid-column:2;margin:0;color:var(--muted);font-size:.55rem}
 .chat-composer{display:flex;align-items:end;gap:.5rem;padding:.8rem;border-top:1px solid var(--line)}
 .chat-composer textarea{flex:1;min-height:44px;max-height:110px;resize:vertical;padding:.65rem .75rem;border:1px solid var(--line);border-radius:.65rem;font-size:.7rem}
 .chat-composer button{min-height:42px;padding:.55rem .9rem;border:0;border-radius:.65rem;background:var(--forest);color:#fff;font-size:.68rem;font-weight:700}
