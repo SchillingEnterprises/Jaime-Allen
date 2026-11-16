@@ -82,6 +82,7 @@ class AIChatViewTests(TestCase):
 
     def post_json(self, payload):
         """Submit a JSON object using Django's test HTTP client."""
+        payload = {"consent": True, **payload}
         return self.client.post(
             self.endpoint,
             data=json.dumps(payload),
@@ -115,6 +116,19 @@ class AIChatViewTests(TestCase):
         response = self.post_json(["not", "an", "object"])
 
         self.assertEqual(response.status_code, 400)
+
+    @patch("main.views.therapy_ai.generate_therapy_response")
+    def test_missing_consent_is_rejected_before_provider_processing(self, mock_generate_response):
+        response = self.client.post(
+            self.endpoint,
+            data=json.dumps({"message": "A message without consent."}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()["success"])
+        mock_generate_response.assert_not_called()
+        self.assertEqual(ClientInteraction.objects.count(), 0)
 
     def test_blank_message_is_rejected(self):
         response = self.post_json({"message": "  "})
@@ -255,6 +269,23 @@ class AIServiceTests(TestCase):
 
 class PublicPageTests(TestCase):
     """Verify the primary public pages render without hidden prerequisites."""
+
+    @override_settings(AI_PROVIDER="ollama", OLLAMA_BASE_URL="http://127.0.0.1:11434")
+    def test_chat_discloses_ollama_provider_and_requires_explicit_consent(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "Provider:")
+        self.assertContains(response, "Ollama")
+        self.assertContains(response, 'id="ai-consent"')
+        self.assertContains(response, "consent to this processing")
+        self.assertContains(response, "Do not include names, contact details")
+
+    @override_settings(AI_PROVIDER="openai", OPENAI_API_KEY="test-only-key")
+    def test_chat_discloses_openai_when_that_provider_is_configured(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "OpenAI")
+        self.assertContains(response, "OpenAI&#x27;s API")
 
     def test_homepage_renders_with_empty_service_catalogue(self):
         response = self.client.get(reverse("home"))
