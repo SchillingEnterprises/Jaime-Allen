@@ -111,6 +111,15 @@ class AIChatView(View):
                 status=400,
             )
 
+        if payload.get("consent") is not True:
+            return JsonResponse(
+                {
+                    "error": "Explicit consent is required before sending a message to the configured AI provider.",
+                    "success": False,
+                },
+                status=400,
+            )
+
         raw_message = payload.get("message")
         if not isinstance(raw_message, str) or not raw_message.strip():
             return JsonResponse(
