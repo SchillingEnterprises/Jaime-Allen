@@ -131,6 +131,10 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 AI_ENABLED = bool(OPENAI_API_KEY)
 
+# Conversation messages can contain sensitive personal information. Storage is
+# disabled unless the deployment has an explicit retention and access policy.
+STORE_CHAT_INTERACTIONS = _environment_flag("STORE_CHAT_INTERACTIONS", default=False)
+
 # Cookie and browser security controls are relaxed only for local development.
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
