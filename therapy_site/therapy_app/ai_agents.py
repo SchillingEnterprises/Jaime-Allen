@@ -130,7 +130,7 @@ class TherapyAI:
         ]
 
         try:
-            if settings.AI_PROVIDER == "ollama":
+            if settings.AI_PROVIDER == "ollama" and self.client is None:
                 provider_response = requests.post(
                     f"{settings.OLLAMA_BASE_URL}/api/chat",
                     json={
