@@ -48,6 +48,15 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
+      - name: Install static analysis tools
+        run: python -m pip install ruff==0.17.5
+
+      - name: Lint maintained Python modules
+        run: ruff check main/views.py main/tests.py therapy_app/settings.py therapy_app/ai_agents.py
+
+      - name: Check JavaScript syntax
+        run: node --check static/js/ai-chatbot.js
+
       - name: Check Python syntax
         run: python -m compileall -q main therapy_app
 
