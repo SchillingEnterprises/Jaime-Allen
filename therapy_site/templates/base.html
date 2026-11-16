@@ -85,10 +85,21 @@
                 <p class="chat-eyebrow">AUTOMATED SUPPORT</p>
                 <h2>Let’s start with a thought</h2>
                 <p class="chat-caption">A space to put words to what is on your mind. Messages are not saved by default.</p>
+                <p class="chat-provider-disclosure">
+                    Provider: <strong>{{ ai_provider_label }}</strong>. When you send a message, it is transmitted to
+                    {{ ai_provider_destination }} for processing. Do not include names, contact details, or other identifying information.
+                </p>
             </div>
             <button class="ai-close-btn" type="button" aria-label="Close support chat">×</button>
         </div>
         <div class="ai-chat-messages" aria-live="polite" aria-relevant="additions text"></div>
+        <div class="chat-consent">
+            <input id="ai-consent" type="checkbox" required aria-describedby="ai-consent-help">
+            <label for="ai-consent">
+                I understand that my message will be sent to {{ ai_provider_label }} and consent to this processing.
+            </label>
+            <p id="ai-consent-help">You must agree before sending. You can close this chat without sending anything.</p>
+        </div>
         <div class="chat-composer">
             {% csrf_token %}
             <label class="visually-hidden" for="ai-message-input">Your message</label>
