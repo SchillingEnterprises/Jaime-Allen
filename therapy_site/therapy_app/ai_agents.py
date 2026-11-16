@@ -88,10 +88,12 @@ class TherapyAI:
 
     @property
     def ai_enabled(self) -> bool:
-        """Return whether an AI provider client is configured."""
+        """Return whether an injected or environment-configured provider is available."""
+        if self.client is not None:
+            return True
         if settings.AI_PROVIDER == "ollama":
             return bool(settings.OLLAMA_BASE_URL)
-        return self.client is not None
+        return bool(settings.OPENAI_API_KEY)
 
     def analyze_sentiment(self, message: str) -> dict[str, Any]:
         """Return optional sentiment metadata; fall back safely when unavailable."""
