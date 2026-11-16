@@ -8,5 +8,5 @@ requests==2.32.5
 Pillow==13.0.0
 django-admin-interface==0.24.2
 django-json-widget==2.1.1
-gunicorn==23.0.0
+gunicorn==27.0.1
 psycopg2-binary==2.9.13
