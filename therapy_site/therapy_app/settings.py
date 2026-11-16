@@ -126,10 +126,23 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CRISPY_ALLOWED_TEMPLATE_PACKS = ["bootstrap5"]
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# AI provider settings. The API key is never stored in source control.
+# AI provider configuration. Ollama can run local open-weight models without
+# a per-request API fee. OpenAI remains an explicit optional provider choice.
+AI_PROVIDER = os.getenv("AI_PROVIDER", "ollama").strip().lower()
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "").rstrip("/")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-AI_ENABLED = bool(OPENAI_API_KEY)
+
+if AI_PROVIDER not in {"ollama", "openai"}:
+    raise ImproperlyConfigured("AI_PROVIDER must be either 'ollama' or 'openai'.")
+
+if AI_PROVIDER == "openai" and not OPENAI_API_KEY:
+    raise ImproperlyConfigured("Set OPENAI_API_KEY when AI_PROVIDER=openai.")
+
+AI_ENABLED = (
+    bool(OLLAMA_BASE_URL) if AI_PROVIDER == "ollama" else bool(OPENAI_API_KEY)
+)
 
 # Conversation messages can contain sensitive personal information. Storage is
 # disabled unless the deployment has an explicit retention and access policy.
