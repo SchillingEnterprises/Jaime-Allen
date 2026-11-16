@@ -2,6 +2,23 @@
 
 A Django-powered website prototype for relationship education and communication-support services. The project includes a public service catalogue, service-detail pages, and an optional AI-assisted communication widget.
 
+
+## Repository map
+
+This repository intentionally preserves two related web surfaces rather than treating every file as part of one Django runtime:
+
+- **Current root experience:** `index.html` is the modern static landing experience. It is plain static web content and does not execute Django.
+- **Legacy static content:** `foyer_index.html` is a retained earlier entry page. Its supporting content lives under `website/page sections/`, with shared styles in `website/static/css/styles.css`. Keep these pages available until their links and any replacement content have been reviewed.
+- **Relationship-support application:** `therapy_site/` is the separately runnable Django application, with its own settings, requirements, database, templates, tests, and AI-support integration. Its backend requires a Python/Django host; GitHub Pages cannot run Django.
+
+The static and Django surfaces can remain in this repository because they share the Jaime Allen project identity and historical content, but they must keep separate build, test, and deployment boundaries. Do not assume a static page deployment also deploys the Django backend.
+
+### Preserved and generated content
+
+The repository currently contains a tracked SQLite database at `therapy_site/db.sqlite3`, generated Django static output under `therapy_site/staticfiles/`, and Python bytecode/cache files. This maintenance pass does not remove, rewrite, or publish database contents. Treat the database as protected historical/application data. Before cleaning generated files from version control, inspect their provenance and any deployment dependency, then make a separate reviewed change that does not alter database rows.
+
+The file `DEPLOY.txt` contains a legacy deployment note. Verify its destination and platform against the current hosting configuration before relying on it; it is not, by itself, proof of a live deployment.
+
 ## Scope and safety boundaries
 
 - The AI widget is a communication-support aid, not therapy, diagnosis, treatment, emergency response, or a substitute for a qualified clinician.
