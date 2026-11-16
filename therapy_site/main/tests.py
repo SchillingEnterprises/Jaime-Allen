@@ -1,9 +1,9 @@
 """Unit and integration tests for service models and public HTTP endpoints."""
 
 import json
-import requests
 from unittest.mock import Mock, patch
 
+import requests
 from django.db import IntegrityError
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
