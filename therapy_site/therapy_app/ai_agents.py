@@ -7,9 +7,9 @@ this module does not download models or make network requests.
 import logging
 from typing import Any
 
+import requests
 from django.conf import settings
 from openai import OpenAI
-import requests
 
 logger = logging.getLogger(__name__)
 
