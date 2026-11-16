@@ -128,7 +128,7 @@ class AIChatViewTests(TestCase):
 
     @patch("main.views.therapy_ai.generate_therapy_response")
     @patch("main.views.therapy_ai.analyze_sentiment")
-    def test_valid_message_is_processed_and_persisted(
+    def test_valid_message_is_processed_without_persisting_by_default(
         self, mock_analyze_sentiment, mock_generate_response
     ):
         mock_analyze_sentiment.return_value = {"label": "NEUTRAL", "score": 0.5}
@@ -141,8 +141,24 @@ class AIChatViewTests(TestCase):
         self.assertTrue(response.json()["success"])
         self.assertEqual(response.json()["session_id"], "session-unit-test")
         self.assertEqual(response.json()["response"], "Thank you for sharing.")
-        interaction = ClientInteraction.objects.get(session_id="session-unit-test")
-        self.assertEqual(interaction.message, "Hello there.")
+        self.assertFalse(ClientInteraction.objects.filter(session_id="session-unit-test").exists())
+
+    @override_settings(STORE_CHAT_INTERACTIONS=True)
+    @patch("main.views.therapy_ai.generate_therapy_response")
+    @patch("main.views.therapy_ai.analyze_sentiment")
+    def test_valid_message_is_persisted_only_when_explicitly_enabled(
+        self, mock_analyze_sentiment, mock_generate_response
+    ):
+        mock_analyze_sentiment.return_value = {"label": "NEUTRAL", "score": 0.5}
+        mock_generate_response.return_value = "Thank you for sharing."
+
+        response = self.post_json(
+            {"message": "A message for the opted-in test.", "session_id": "session-retained"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        interaction = ClientInteraction.objects.get(session_id="session-retained")
+        self.assertEqual(interaction.message, "A message for the opted-in test.")
 
     @patch("main.views.therapy_ai.generate_therapy_response")
     def test_processing_failure_returns_safe_service_unavailable_response(
