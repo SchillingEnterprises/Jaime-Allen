@@ -378,3 +378,10 @@ ENV/
 # IDE project metadata (regenerated locally by JetBrains IDEs)
 *.iml
 .idea/**/material_theme_project_new.xml
+
+# Local Django database and SQLite sidecars.
+# Existing tracked database files require a separate data-retention review.
+therapy_site/*.sqlite3
+therapy_site/*.sqlite3-journal
+therapy_site/*.sqlite3-wal
+therapy_site/*.sqlite3-shm
