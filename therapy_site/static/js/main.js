@@ -1,76 +1,138 @@
-// Main JavaScript functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    });
-
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    // Add loading animation to cards
-    const cards = document.querySelectorAll('.ai-optimized-card');
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px)';
-        });
-
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
+/**
+ * Progressive enhancement for site interactions.
+ * All external text is inserted as text, never interpreted as HTML.
+ */
+document.addEventListener("DOMContentLoaded", () => {
+    initializeTooltips();
+    initializeAnchorNavigation();
+    initializeCommunicationCoach();
 });
 
-// Communication analysis function
-function analyzeCommunication() {
-    const challengeText = document.querySelector('textarea').value;
-    const feedbackDiv = document.getElementById('communication-feedback');
-
-    if (!challengeText.trim()) {
-        feedbackDiv.innerHTML = '<p class="text-warning">Please describe a communication challenge first.</p>';
-        feedbackDiv.style.display = 'block';
+/** Initialize Bootstrap tooltips only when the Bootstrap bundle is available. */
+function initializeTooltips() {
+    if (!window.bootstrap || typeof window.bootstrap.Tooltip !== "function") {
         return;
     }
 
-    // Simulate AI analysis
-    feedbackDiv.innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Analyzing...</span>
-            </div>
-            <p class="mt-2">AI is analyzing your communication pattern...</p>
-        </div>
-    `;
-    feedbackDiv.style.display = 'block';
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
+        window.bootstrap.Tooltip.getOrCreateInstance(element);
+    });
+}
 
-    // Simulate API call to AI backend
-    setTimeout(() => {
-        const responses = [
-            "Try using 'I feel' statements instead of 'You always' language.",
-            "Consider validating their perspective before sharing your own.",
-            "Practice the 3-second pause before responding to emotional topics.",
-            "Schedule a specific time to discuss this when both are calm.",
-            "Focus on the underlying need rather than the surface complaint."
-        ];
+/** Enhance fragment links without breaking keyboard or reduced-motion preferences. */
+function initializeAnchorNavigation() {
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", (event) => {
+            const fragment = anchor.getAttribute("href");
+            if (!fragment || fragment.length < 2) {
+                return;
+            }
 
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            const target = document.getElementById(decodeURIComponent(fragment.slice(1)));
+            if (!target) {
+                return;
+            }
 
-        feedbackDiv.innerHTML = `
-            <h6><i class="fas fa-robot text-primary me-2"></i>AI Communication Coach Says:</h6>
-            <p class="mb-2">"${randomResponse}"</p>
-            <small class="text-muted">Based on Gottman Method and Nonviolent Communication principles</small>
-        `;
-    }, 2000);
+            event.preventDefault();
+            target.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                    ? "auto"
+                    : "smooth",
+                block: "start"
+            });
+        });
+    });
+}
+
+/**
+ * Connect the practice form to the same bounded, CSRF-protected endpoint as chat.
+ * This tool provides educational communication prompts, not clinical assessment.
+ */
+function initializeCommunicationCoach() {
+    const form = document.getElementById("communication-coach-form");
+    const messageInput = document.getElementById("communication-challenge");
+    const feedback = document.getElementById("communication-feedback");
+    const submitButton = document.getElementById("communication-coach-submit");
+
+    if (!form || !messageInput || !feedback || !submitButton) {
+        return;
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const challenge = messageInput.value.trim();
+        if (!challenge) {
+            feedback.textContent = "Please describe a communication challenge first.";
+            feedback.dataset.state = "error";
+            messageInput.focus();
+            return;
+        }
+
+        if (challenge.length > 1_700) {
+            feedback.textContent = "Please keep your description under 1,700 characters.";
+            feedback.dataset.state = "error";
+            return;
+        }
+
+        const aiConfig = window.aiConfig;
+        if (!aiConfig || !aiConfig.enabled || !aiConfig.chatEndpoint) {
+            feedback.textContent = "The automated practice coach is not available right now. You can still use the exercises on this page.";
+            feedback.dataset.state = "error";
+            return;
+        }
+
+        const requestMessage = [
+            "Offer a brief, non-clinical communication practice suggestion for this situation.",
+            "Do not diagnose, assess risk, claim to provide therapy, or present one answer as universally correct.",
+            "Offer one or two empathetic, practical options and encourage professional support where appropriate.",
+            "Situation:",
+            challenge
+        ].join("\n");
+
+        submitButton.disabled = true;
+        feedback.dataset.state = "loading";
+        feedback.textContent = "Thinking through a practical next step…";
+
+        try {
+            const response = await fetch(aiConfig.chatEndpoint, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getDjangoCSRFToken()
+                },
+                body: JSON.stringify({ message: requestMessage })
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.success || typeof result.response !== "string") {
+                throw new Error("The communication coach request was unsuccessful.");
+            }
+
+            feedback.textContent = result.response;
+            feedback.dataset.state = "success";
+        } catch (_error) {
+            // Never log personal descriptions or send them to analytics.
+            feedback.textContent = "The coach could not respond just now. Please try again later.";
+            feedback.dataset.state = "error";
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+}
+
+/** Read the same-origin CSRF cookie generated by Django's CSRF middleware. */
+function getDjangoCSRFToken() {
+    const prefix = "csrftoken=";
+    const csrfCookie = document.cookie
+        .split(";")
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith(prefix));
+
+    if (csrfCookie) {
+        return decodeURIComponent(csrfCookie.slice(prefix.length));
+    }
+
+    return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
 }

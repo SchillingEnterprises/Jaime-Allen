@@ -1,144 +1,238 @@
+/**
+ * Accessible, same-origin support-chat widget.
+ *
+ * The feature is enabled only when configured on the server. User input and
+ * provider output are rendered as text, never inserted as HTML.
+ */
 class AIChatBot {
     constructor() {
         this.isOpen = false;
+        this.isSending = false;
         this.sessionId = this.generateSessionId();
-        this.init();
-    }
 
-    generateSessionId() {
-        return 'session_' + Math.random().toString(36).substr(2, 9);
-    }
+        // Cache the widget elements once; avoid repeated document-wide lookups.
+        this.toggleButton = document.getElementById("ai-chat-toggle");
+        this.chatWidget = document.getElementById("ai-chat-widget");
+        this.closeButton = document.querySelector(".ai-close-btn");
+        this.sendButton = document.getElementById("ai-send-btn");
+        this.messageInput = document.getElementById("ai-message-input");
+        this.consentCheckbox = document.getElementById("ai-consent");
+        this.messagesContainer = document.querySelector(".ai-chat-messages");
 
-    init() {
-        this.toggleBtn = document.getElementById('ai-chat-toggle');
-        this.chatWidget = document.getElementById('ai-chat-widget');
-        this.closeBtn = document.querySelector('.ai-close-btn');
-        this.sendBtn = document.getElementById('ai-send-btn');
-        this.messageInput = document.getElementById('ai-message-input');
-        this.messagesContainer = document.querySelector('.ai-chat-messages');
+        if (!this.hasRequiredElements()) {
+            console.warn("Support chat markup is incomplete; widget initialization skipped.");
+            return;
+        }
 
         this.bindEvents();
-
-        // Add welcome message
-        this.addMessage('ai', 'Hello! I\'m here to provide supportive listening and guidance. How can I help you today?');
+        this.addMessage(
+            "ai",
+            "Hello. I can offer general, supportive communication prompts. What would be helpful to think through today?"
+        );
     }
 
+    /** Generate a non-secret conversation grouping identifier. */
+    generateSessionId() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+            return `session_${window.crypto.randomUUID()}`;
+        }
+        return `session_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
+    }
+
+    /** Confirm the expected markup exists before binding browser events. */
+    hasRequiredElements() {
+        return Boolean(
+            this.toggleButton &&
+            this.chatWidget &&
+            this.closeButton &&
+            this.sendButton &&
+            this.messageInput &&
+            this.consentCheckbox &&
+            this.messagesContainer
+        );
+    }
+
+    /** Bind mouse, touch, and keyboard interactions. */
     bindEvents() {
-        this.toggleBtn.addEventListener('click', () => this.toggleChat());
-        this.closeBtn.addEventListener('click', () => this.closeChat());
-        this.sendBtn.addEventListener('click', () => this.sendMessage());
-        this.messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.sendMessage();
+        this.toggleButton.addEventListener("click", () => this.toggleChat());
+        this.closeButton.addEventListener("click", () => this.closeChat());
+        this.sendButton.addEventListener("click", () => this.sendMessage());
+
+        this.messageInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                this.sendMessage();
+            }
         });
     }
 
+    /** Open or close the panel and keep its accessibility state in sync. */
     toggleChat() {
         this.isOpen = !this.isOpen;
-        this.chatWidget.classList.toggle('open', this.isOpen);
+        this.chatWidget.hidden = !this.isOpen;
+        this.toggleButton.setAttribute("aria-expanded", String(this.isOpen));
 
         if (this.isOpen) {
+            this.messageInput.focus();
+        } else {
+            this.toggleButton.focus();
+        }
+    }
+
+    /** Close the panel and return keyboard focus to the launcher button. */
+    closeChat() {
+        this.isOpen = false;
+        this.chatWidget.hidden = true;
+        this.toggleButton.setAttribute("aria-expanded", "false");
+        this.toggleButton.focus();
+    }
+
+    /** Send a bounded message to Django using same-origin credentials and CSRF. */
+    async sendMessage() {
+        if (this.isSending) {
+            return;
+        }
+
+        const message = this.messageInput.value.trim();
+        if (!message) {
+            this.messageInput.focus();
+            return;
+        }
+
+        if (message.length > 2_000) {
+            this.addMessage("ai", "Please keep your message to 2,000 characters or fewer.");
+            return;
+        }
+
+        const endpoint = window.aiConfig && window.aiConfig.chatEndpoint;
+        if (!endpoint) {
+            this.addMessage("ai", "Chat is not available right now. Please contact the practice directly.");
+            return;
+        }
+
+        if (!this.consentCheckbox.checked) {
+            this.addMessage(
+                "ai",
+                "Please review the provider disclosure and confirm consent before sending a message."
+            );
+            this.consentCheckbox.focus();
+            return;
+        }
+
+        this.isSending = true;
+        this.sendButton.disabled = true;
+        this.addMessage("user", message);
+        this.messageInput.value = "";
+        this.showTypingIndicator();
+
+        try {
+            const response = await fetch(endpoint, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": this.getCSRFToken()
+                },
+                body: JSON.stringify({ message, session_id: this.sessionId, consent: true })
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.success || typeof result.response !== "string") {
+                throw new Error("The support chat request was unsuccessful.");
+            }
+
+            this.addMessage("ai", result.response);
+        } catch (_error) {
+            // Deliberately avoid logging the message or other personal information.
+            this.addMessage(
+                "ai",
+                "I couldn't process that message just now. Please try again or contact the practice directly."
+            );
+        } finally {
+            this.hideTypingIndicator();
+            this.isSending = false;
+            this.sendButton.disabled = false;
             this.messageInput.focus();
         }
     }
 
-    closeChat() {
-        this.isOpen = false;
-        this.chatWidget.classList.remove('open');
-    }
+    /** Create a text-only message element. */
+    addMessage(sender, messageText) {
+        const messageElement = document.createElement("div");
+        messageElement.className = `message ${sender}-message`;
 
-    async sendMessage() {
-        const message = this.messageInput.value.trim();
-        if (!message) return;
+        const bubbleElement = document.createElement("div");
+        bubbleElement.className = "message-bubble";
 
-        this.addMessage('user', message);
-        this.messageInput.value = '';
+        const textElement = document.createElement("div");
+        textElement.className = "message-text";
+        textElement.textContent = messageText;
 
-        // Show typing indicator
-        this.showTypingIndicator();
+        const timeElement = document.createElement("div");
+        timeElement.className = "message-time";
+        timeElement.textContent = this.getCurrentTime();
 
-        try {
-            const response = await fetch(window.aiConfig.chatEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCSRFToken()
-                },
-                body: JSON.stringify({
-                    message: message,
-                    session_id: this.sessionId
-                })
-            });
-
-            const data = await response.json();
-            this.hideTypingIndicator();
-
-            if (data.success) {
-                this.addMessage('ai', data.response);
-            } else {
-                this.addMessage('ai', 'I appreciate you sharing. Let\'s discuss this further in our session.');
-            }
-        } catch (error) {
-            this.hideTypingIndicator();
-            this.addMessage('ai', 'Thank you for your message. I\'m here to listen and support you.');
-        }
-    }
-
-    addMessage(sender, text) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message`;
-        messageDiv.innerHTML = `
-            <div class="message-bubble">
-                <div class="message-text">${this.escapeHtml(text)}</div>
-                <div class="message-time">${this.getCurrentTime()}</div>
-            </div>
-        `;
-
-        this.messagesContainer.appendChild(messageDiv);
+        bubbleElement.append(textElement, timeElement);
+        messageElement.appendChild(bubbleElement);
+        this.messagesContainer.appendChild(messageElement);
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
 
+    /** Show a typing state without injecting an HTML string. */
     showTypingIndicator() {
-        const typingDiv = document.createElement('div');
-        typingDiv.id = 'typing-indicator';
-        typingDiv.className = 'message ai-message typing';
-        typingDiv.innerHTML = `
-            <div class="message-bubble">
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        `;
-        this.messagesContainer.appendChild(typingDiv);
+        this.hideTypingIndicator();
+
+        const indicator = document.createElement("div");
+        indicator.id = "typing-indicator";
+        indicator.className = "message ai-message typing";
+        indicator.setAttribute("aria-label", "Assistant is responding");
+
+        const bubble = document.createElement("div");
+        bubble.className = "message-bubble";
+        const dots = document.createElement("div");
+        dots.className = "typing-dots";
+
+        for (let dotIndex = 0; dotIndex < 3; dotIndex += 1) {
+            dots.appendChild(document.createElement("span"));
+        }
+
+        bubble.appendChild(dots);
+        indicator.appendChild(bubble);
+        this.messagesContainer.appendChild(indicator);
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
 
+    /** Remove the current typing state, if present. */
     hideTypingIndicator() {
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
-        }
+        this.messagesContainer.querySelector("#typing-indicator")?.remove();
     }
 
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    getCurrentTime() {
-        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
+    /** Read Django's CSRF cookie or the standard hidden input fallback. */
     getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        const prefix = "csrftoken=";
+        const csrfCookie = document.cookie
+            .split(";")
+            .map((cookie) => cookie.trim())
+            .find((cookie) => cookie.startsWith(prefix));
+
+        if (csrfCookie) {
+            return decodeURIComponent(csrfCookie.slice(prefix.length));
+        }
+        return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
+    }
+
+    /** Format a local-time label for a message. */
+    getCurrentTime() {
+        return new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
     }
 }
 
-// Initialize chatbot when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.aiConfig.enabled) {
-        new AIChatBot();
+/** Initialize only when the server-rendered page explicitly enables the feature. */
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.aiConfig && window.aiConfig.enabled) {
+        window.aiChatBot = new AIChatBot();
     }
 });
