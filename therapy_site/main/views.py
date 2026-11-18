@@ -6,6 +6,7 @@ import uuid
 from typing import Any, ClassVar
 
 from django.conf import settings
+from django.core.exceptions import RequestDataTooBig
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Keep requests bounded to protect the application and downstream AI provider.
 MAX_CHAT_MESSAGE_LENGTH = 2_000
+MAX_CHAT_REQUEST_BYTES = 16_384
 MAX_SESSION_ID_LENGTH = 100
 FALLBACK_AI_RESPONSE = (
     "Thank you for sharing. I appreciate you reaching out. "
@@ -98,7 +100,21 @@ class AIChatView(View):
             )
 
         try:
-            payload: Any = json.loads(request.body)
+            raw_body = request.body
+        except RequestDataTooBig:
+            return JsonResponse(
+                {"error": "Request body is too large.", "success": False},
+                status=413,
+            )
+
+        if len(raw_body) > MAX_CHAT_REQUEST_BYTES:
+            return JsonResponse(
+                {"error": "Request body is too large.", "success": False},
+                status=413,
+            )
+
+        try:
+            payload: Any = json.loads(raw_body)
         except (json.JSONDecodeError, UnicodeDecodeError):
             return JsonResponse(
                 {"error": "Request body must contain valid JSON.", "success": False},
