@@ -248,6 +248,15 @@ class AIServiceTests(TestCase):
 
         self.assertIn("courage", response.lower())
 
+    @override_settings(AI_PROVIDER="openai", OPENAI_API_KEY="test-only-key")
+    def test_openai_sdk_client_exposes_chat_completions_interface(self):
+        """Exercise the installed SDK client surface without a network request."""
+        ai_service = TherapyAI(client=None)
+
+        self.assertTrue(ai_service.ai_enabled)
+        self.assertIsNotNone(ai_service.client)
+        self.assertTrue(callable(ai_service.client.chat.completions.create))
+
     def test_configured_client_response_is_returned(self):
         provider_client = Mock()
         provider_client.chat.completions.create.return_value.choices = [
