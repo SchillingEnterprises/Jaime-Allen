@@ -67,6 +67,14 @@ jobs:
       - name: Run Django system checks
         run: python manage.py check
 
+      - name: Check production security configuration
+        env:
+          DEBUG: "false"
+          SECRET_KEY: "ci-only-deployment-check-key-long-enough-for-django-security-validation"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+          SECURE_SSL_REDIRECT: "true"
+        run: python manage.py check --deploy --fail-level ERROR
+
       - name: Check migration consistency
         run: python manage.py makemigrations --check --dry-run
 
