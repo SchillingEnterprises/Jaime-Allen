@@ -1,0 +1,74 @@
+name: Therapy Django CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "therapy_site/**"
+      - ".github/workflows/therapy-django-ci.yml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "therapy_site/**"
+      - ".github/workflows/therapy-django-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: therapy-django-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Django checks and unit tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    defaults:
+      run:
+        working-directory: therapy_site
+    env:
+      DEBUG: "true"
+      SECRET_KEY: "ci-only-ephemeral-key-not-for-production"
+      OPENAI_API_KEY: ""
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: therapy_site/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Install static analysis tools
+        run: python -m pip install ruff==0.17.5
+
+      - name: Lint maintained Python modules
+        run: ruff check main/views.py main/tests.py therapy_app/settings.py therapy_app/ai_agents.py
+
+      - name: Check JavaScript syntax
+        run: node --check static/js/ai-chatbot.js
+
+      - name: Check Python syntax
+        run: python -m compileall -q main therapy_app
+
+      - name: Run Django system checks
+        run: python manage.py check
+
+      - name: Check migration consistency
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run unit and integration tests
+        run: python manage.py test --verbosity 2
