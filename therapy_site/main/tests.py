@@ -141,6 +141,16 @@ class AIChatViewTests(TestCase):
 
         self.assertEqual(response.status_code, 413)
 
+    def test_oversized_request_body_is_rejected_before_json_parsing(self):
+        response = self.client.post(
+            self.endpoint,
+            data=json.dumps({"message": "Hello", "padding": "x" * 16_384}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 413)
+        self.assertFalse(response.json()["success"])
+
     def test_invalid_session_identifier_is_rejected(self):
         response = self.post_json({"message": "Hello", "session_id": "x" * 101})
 
