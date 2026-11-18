@@ -374,3 +374,7 @@ ENV/
 *.sqlite3-journal
 *.sqlite3-wal
 *.sqlite3-shm
+
+# IDE project metadata (regenerated locally by JetBrains IDEs)
+*.iml
+.idea/**/material_theme_project_new.xml
