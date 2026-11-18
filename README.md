@@ -1,39 +1,38 @@
-# Jaime Allen Relationship Support Website
+# Jaime Allen — Relationship Support Website and Django Prototype
 
-A Django-powered website prototype for relationship education and communication-support services. The project includes a public service catalogue, service-detail pages, and an optional AI-assisted communication widget.
+This repository contains related but separate website and application work for the Jaime Allen project.
 
+## Project layout
 
-## Repository map
+- `index.html` is the primary static landing page published with GitHub Pages.
+- `foyer_index.html` is a retained legacy entry page that links into archived material under `website/`.
+- `website/` contains legacy static pages and shared styles.
+- `therapy_site/` contains a separate Django application prototype, including its own dependencies, migrations, static assets, tests, and development database. It is not part of the GitHub Pages site.
 
-This repository intentionally preserves two related web surfaces rather than treating every file as part of one Django runtime:
+The root `_config.yml` excludes the Django application and development metadata from the Jekyll Pages build. Keep this boundary intact: GitHub Pages is static hosting, not a Django runtime. Validate static-site changes and Django changes independently.
 
-- **Current root experience:** `index.html` is the modern static landing experience. It is plain static web content and does not execute Django.
-- **Legacy static content:** `foyer_index.html` is a retained earlier entry page. Its supporting content lives under `website/page sections/`, with shared styles in `website/static/css/styles.css`. Keep these pages available until their links and any replacement content have been reviewed.
-- **Relationship-support application:** `therapy_site/` is the separately runnable Django application, with its own settings, requirements, database, templates, tests, and AI-support integration. Its backend requires a Python/Django host; GitHub Pages cannot run Django.
+## AI-support prototype and privacy
 
-The static and Django surfaces can remain in this repository because they share the Jaime Allen project identity and historical content, but they must keep separate build, test, and deployment boundaries. Do not assume a static page deployment also deploys the Django backend.
+The optional AI widget is a communication-support aid, not therapy, diagnosis, treatment, crisis counseling, emergency response, or a substitute for a qualified clinician.
 
-### Preserved and generated content
-
-The repository currently contains a tracked SQLite database at `therapy_site/db.sqlite3`, generated Django static output under `therapy_site/staticfiles/`, and Python bytecode/cache files. This maintenance pass does not remove, rewrite, or publish database contents. Treat the database as protected historical/application data. Before cleaning generated files from version control, inspect their provenance and any deployment dependency, then make a separate reviewed change that does not alter database rows.
-
-The file `DEPLOY.txt` contains a legacy deployment note. Verify its destination and platform against the current hosting configuration before relying on it; it is not, by itself, proof of a live deployment.
-
-## Scope and safety boundaries
-
-- The AI widget is a communication-support aid, not therapy, diagnosis, treatment, emergency response, or a substitute for a qualified clinician.
-- The backend uses the local Ollama provider by default when configured. OpenAI is an optional provider and is not called unless explicitly selected with an API key.
+- The backend defaults to the local Ollama provider when configured.
+- OpenAI is an optional provider and is used only when explicitly selected with an API key.
+- The interface must disclose which provider processes a message and obtain affirmative consent before transmitting personal content.
 - Chat messages are not written to the application database unless `STORE_CHAT_INTERACTIONS=true` is deliberately configured.
-- The frontend should disclose which AI provider processes the message and obtain the appropriate consent before a user submits personal content.
-- This repository is a software prototype. Clinical, legal, privacy, and content review are required before production use.
+- Disabling database persistence does not prevent the selected provider from processing the message to generate a response.
+- Prompts and provider payloads must not be written to application logs.
 
-## Requirements
+Do not enable public use until a qualified professional and responsible operator have reviewed the content, consent language, privacy notice, provider data handling, retention/deletion policy, and escalation boundaries.
 
-- Python 3.12–3.14
-- Django 6.1.3
-- See `therapy_site/requirements.txt` for the complete pinned dependency set.
+## Data and public-repository warning
 
-## Local development
+**This is a public GitHub repository. A SQLite database file is tracked under `therapy_site/`, and its contents and historical versions may be accessible to anyone who can view the repository.** The database has not been opened or reviewed as part of this maintenance work. Do not place real client, patient, appointment, or other sensitive records in this repository.
+
+Before using the Django prototype with real people or sensitive information, move data to an appropriately secured private database. If sensitive information is or has been stored in the tracked database, removing the current file alone is not sufficient: earlier commits may still contain copies. Review the data and history privately, preserve any required records securely, and plan a reviewed history-removal and exposure-response process. Rotate any credentials found in exposed history.
+
+## Requirements and local development
+
+The Django prototype has its own dependency manifest at `therapy_site/requirements.txt` and its own `manage.py`. Use Python 3.12–3.14 and work from the `therapy_site/` directory in an isolated virtual environment.
 
 ```bash
 cd therapy_site
@@ -42,14 +41,12 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env` and set a local secret. The project loads the local environment file in development. Never commit real secrets.
+Copy `.env.example` to `.env` and set local development values. Never commit real secrets.
 
 ```bash
 python manage.py migrate
 python manage.py runserver
 ```
-
-Open the local server address printed by Django.
 
 ## Quality checks
 
@@ -64,10 +61,13 @@ python manage.py makemigrations --check --dry-run
 python manage.py test --verbosity 2
 ```
 
-GitHub Actions runs these checks on Python 3.12, 3.13, and 3.14.
+GitHub Actions is intended to run the Django checks on Python 3.12, 3.13, and 3.14. The static-site validation workflow is separate. A passing Pages build does not validate Django or make the backend production-ready.
 
-## Production considerations
+## Deployment boundaries
 
-The current settings default to SQLite for local development. A production deployment needs a supported managed database, host-specific secrets, HTTPS, backups, monitoring, an appropriate privacy notice and retention policy, and provider-specific data-processing disclosures.
+- GitHub Pages publishes the static root website and the linked `website/` archive only.
+- The Django prototype requires separate application hosting, a production database, managed secrets, authentication and authorization review, secure transport, backups, monitoring, and privacy review.
+- The current Django settings retain SQLite for local development. A production deployment needs an appropriately secured managed database and deployment-specific settings.
+- The legacy `DEPLOY.txt` note must be checked against the current hosting configuration; it is not proof of a live deployment.
 
-The project is not ready to publish as a live clinical or therapy service until a qualified professional reviews the content and a responsible operator confirms the privacy, security, consent, and escalation workflows.
+Preserve the static site and Django prototype together unless their ownership, deployment, or release lifecycles become genuinely independent. Do not treat this repository, its Pages site, or its current database as an approved clinical record system.
