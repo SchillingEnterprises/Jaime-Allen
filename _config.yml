@@ -1,0 +1,14 @@
+# This repository contains two separate deployment surfaces:
+# - The root relationship-therapy site and the legacy website/ content are public.
+# - therapy_site/ is a Django application and must never be published as a static site.
+exclude:
+  - therapy_site/
+  - .idea/
+  - .github/
+  - README.md
+  - DEPLOY.txt
+  - .gitignore
+  - "**/*.sqlite3"
+  - "**/*.sqlite3-journal"
+  - "**/*.sqlite3-wal"
+  - "**/*.sqlite3-shm"
