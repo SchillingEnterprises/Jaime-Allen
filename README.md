@@ -1,19 +1,34 @@
-# Jaime Allen — Relationship Support Website and Django Prototype
+# Jaime Allen — Professional Profile, Static Site, and Django Prototype
 
-This repository contains related but separate website and application work for the Jaime Allen project.
+This repository contains a public static website, retained historical relationship-resource pages, and a separate Django application prototype. These are distinct deployment surfaces and must remain clearly separated.
+
+## Current professional profile
+
+The current public practice listing identifies Jaime Allen as a **Licensed Marriage & Family Therapist (California LMFT #164998)** with **Insightful Matters Family Counseling Professionals**. The practice profile lists virtual telehealth as her service location.
+
+The official profile currently lists:
+- Master’s degree in Marriage and Family Therapy from Pacific Oaks College.
+- English as the language spoken.
+- Age ranges: adolescence (12–20), young adult (21–35), adulthood (35–50), and midlife (50–80).
+- A professional approach that includes psychodynamic therapy and EMDR training.
+- Experience and areas described by the practice profile including trauma support, cancer-related support, couples counseling, LGBTQ+ affirming care, and creative approaches such as art therapy, horticultural therapy, and dream journaling.
+
+**Source of truth:** [Jaime Allen — Insightful Matters](https://www.insightfulmatters.com/jaime-allen). The practice’s page controls current services, scope, availability, contact methods, and booking options. This repository is a secondary presentation and must be reconciled whenever the official profile changes. The former AMFT designation, former registration number, and old supervisor listing have been retired from the current profile pages; do not reintroduce them.
 
 ## Project layout
 
 - `index.html` is the primary static landing page published with GitHub Pages.
-- `foyer_index.html` is a retained legacy entry page that links into archived material under `website/`.
-- `website/` contains legacy static pages and shared styles.
-- `therapy_site/` contains a separate Django application prototype, including its own dependencies, migrations, static assets, tests, and development database. It is not part of the GitHub Pages site.
+- `foyer_index.html` is a retained historical relationship-resource archive and links into older material under `website/`.
+- `website/` contains legacy static pages and styles. The old biography page has been replaced with a current-profile summary; other historical topic pages are explicitly presented as an archive, not as a live service catalogue.
+- `therapy_site/` contains a separate Django application prototype, including dependencies, migrations, static assets, tests, and a development database. It is not part of the GitHub Pages site.
 
 The root `_config.yml` excludes the Django application and development metadata from the Jekyll Pages build. Keep this boundary intact: GitHub Pages is static hosting, not a Django runtime. Validate static-site changes and Django changes independently.
 
-## Professional profile and practice information
+## Static site, privacy, and clinical boundaries
 
-The public landing page has had its legacy professional-license, supervisor, former-practice, and experience claims removed pending confirmation of Jaime's current details. Do not restore or publish credentials, license numbers, supervisory relationships, practice names, service claims, contact details, or booking links until they are verified and approved for public display. The demo client-portal control is intentionally marked as not configured; no HIPAA or regulatory-compliance certification is claimed.
+The interactive Seascape/relationship reflection content is an educational experience only. It is not therapy, diagnosis, treatment, crisis counseling, emergency response, or a clinical record. Do not invite users to submit health details through this static site. The static page is not a client portal and is not an approved channel for protected health information. Direct users to the official practice website for approved communication, portal, and appointment options.
+
+Do not describe the GitHub Pages site, prototype, or AI widget as HIPAA-compliant or otherwise certified. Do not embed payment links or make clinical-payment claims unless the practice explicitly authorizes a reviewed implementation.
 
 ## AI-support prototype and privacy
 
@@ -72,7 +87,7 @@ GitHub Actions is intended to run the Django checks on Python 3.12, 3.13, and 3.
 - GitHub Pages publishes the static root website and the linked `website/` archive only.
 - The Django prototype requires separate application hosting, a production database, managed secrets, authentication and authorization review, secure transport, backups, monitoring, and privacy review.
 - The current Django settings retain SQLite for local development. A production deployment needs an appropriately secured managed database and deployment-specific settings.
-- The legacy `DEPLOY.txt` note must be checked against the current hosting configuration; it is not proof of a live deployment.
+- `DEPLOY.txt` documents the boundaries and validation steps; it is not proof of a live deployment.
 
 Preserve the static site and Django prototype together unless their ownership, deployment, or release lifecycles become genuinely independent. Do not treat this repository, its Pages site, or its current database as an approved clinical record system.
 
