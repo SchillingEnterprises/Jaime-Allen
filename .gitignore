@@ -129,3 +129,6 @@ therapy_site/*.sqlite3
 therapy_site/*.sqlite3-journal
 therapy_site/*.sqlite3-wal
 therapy_site/*.sqlite3-shm
+
+# Django collectstatic output is generated during deployment.
+/therapy_site/staticfiles/
