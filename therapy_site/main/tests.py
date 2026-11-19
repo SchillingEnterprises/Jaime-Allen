@@ -33,9 +33,12 @@ class EnvironmentFlagTests(TestCase):
 
     def test_malformed_value_raises_configuration_error(self):
         for value in ("tru", "disabled", "", "2"):
-            with self.subTest(value=value), patch("therapy_app.settings.os.getenv", return_value=value):
-                with self.assertRaises(ImproperlyConfigured):
-                    _environment_flag("FLAG")
+            with (
+                self.subTest(value=value),
+                patch("therapy_app.settings.os.getenv", return_value=value),
+                self.assertRaises(ImproperlyConfigured),
+            ):
+                _environment_flag("FLAG")
 
 
 class ServiceModelTests(TestCase):
