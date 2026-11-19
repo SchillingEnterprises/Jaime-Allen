@@ -48,6 +48,11 @@ class StaticProjectSmokeTests(unittest.TestCase):
             ("div", {"id": "root", "role": "main", "tabindex": "-1"}),
             parser.elements,
         )
+        self.assertTrue(
+            any(tag == "main" and attrs.get("id") == "main" for tag, attrs in parser.elements),
+            "The skip link must target a real main-content fallback.",
+        )
+        self.assertIn("If it remains here, use the official profile link above.", page.read_text(encoding="utf-8"))
         source = page.read_text(encoding="utf-8")
         self.assertIn(".skip-link:focus", source)
         self.assertIn("#main:focus", source)
