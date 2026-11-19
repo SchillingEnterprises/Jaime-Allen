@@ -11,8 +11,11 @@ class LocalReferenceParser(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.references = []
+        self.elements = []
 
     def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        self.elements.append((tag, attributes))
         for name, value in attrs:
             if name in {"href", "src"} and value:
                 self.references.append((tag, name, value))
@@ -31,6 +34,23 @@ class StaticProjectSmokeTests(unittest.TestCase):
         for path in required:
             with self.subTest(path=path.relative_to(ROOT)):
                 self.assertTrue(path.is_file(), f"Missing project file: {path.relative_to(ROOT)}")
+
+    def test_react_homepage_has_keyboard_skip_navigation_and_main_landmark(self):
+        page = ROOT / "index.html"
+        parser = LocalReferenceParser()
+        parser.feed(page.read_text(encoding="utf-8"))
+
+        self.assertIn(
+            ("a", {"class": "skip-link", "href": "#main"}),
+            parser.elements,
+        )
+        self.assertIn(
+            ("div", {"id": "root", "role": "main", "tabindex": "-1"}),
+            parser.elements,
+        )
+        source = page.read_text(encoding="utf-8")
+        self.assertIn(".skip-link:focus", source)
+        self.assertIn("#main:focus", source)
 
     def test_legacy_static_page_local_references_resolve(self):
         page = ROOT / "foyer_index.html"
