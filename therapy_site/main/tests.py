@@ -4,12 +4,41 @@ import json
 from unittest.mock import Mock, patch
 
 import requests
+from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from main.models import ClientInteraction, Service
 from therapy_app.ai_agents import ContentOptimizer, TherapyAI
+from therapy_app.settings import _environment_flag
+
+
+class EnvironmentFlagTests(TestCase):
+    """Security settings must fail closed on malformed boolean values."""
+
+    def test_true_and_false_spellings_are_parsed_explicitly(self):
+        for value in ("1", "true", "yes", "on", " TRUE "):
+            with self.subTest(value=value), patch("therapy_app.settings.os.getenv", return_value=value):
+                self.assertIs(_environment_flag("FLAG"), True)
+
+        for value in ("0", "false", "no", "off", " FALSE "):
+            with self.subTest(value=value), patch("therapy_app.settings.os.getenv", return_value=value):
+                self.assertIs(_environment_flag("FLAG", default=True), False)
+
+    def test_missing_value_uses_explicit_default(self):
+        with patch("therapy_app.settings.os.getenv", return_value=None):
+            self.assertIs(_environment_flag("FLAG"), False)
+            self.assertIs(_environment_flag("FLAG", default=True), True)
+
+    def test_malformed_value_raises_configuration_error(self):
+        for value in ("tru", "disabled", "", "2"):
+            with (
+                self.subTest(value=value),
+                patch("therapy_app.settings.os.getenv", return_value=value),
+                self.assertRaises(ImproperlyConfigured),
+            ):
+                _environment_flag("FLAG")
 
 
 class ServiceModelTests(TestCase):
