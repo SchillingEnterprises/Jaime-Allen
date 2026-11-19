@@ -75,3 +75,7 @@ GitHub Actions is intended to run the Django checks on Python 3.12, 3.13, and 3.
 - The legacy `DEPLOY.txt` note must be checked against the current hosting configuration; it is not proof of a live deployment.
 
 Preserve the static site and Django prototype together unless their ownership, deployment, or release lifecycles become genuinely independent. Do not treat this repository, its Pages site, or its current database as an approved clinical record system.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for this repository's security, privacy, and responsible-use guidance.
