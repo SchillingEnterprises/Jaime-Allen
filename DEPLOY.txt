@@ -1,1 +1,33 @@
-Deploy: Upload index.html to schillingenterprises.github.io/Jaime-Allen repo. This version includes whimsical seascape background, full interactive healing studio (sand art, calligraphy, waterfall, dolphins, ocean breeze, thinking counter), YouTube @SolarisJaime integrated, and compliant optional secure share checkbox. No PHI stored on GitHub Pages. Replace secure portal placeholder href with SimplePractice/TherapyNotes link.
+Jaime Allen repository deployment notes
+
+Current public professional source:
+  https://www.insightfulmatters.com/jaime-allen
+
+Verified profile facts to keep in sync:
+  Name: Jaime Allen
+  Designation: Licensed Marriage & Family Therapist (California LMFT #164998)
+  Practice: Insightful Matters Family Counseling Professionals
+  Listed setting: Virtual telehealth
+
+Static site:
+  - GitHub Pages publishes the repository root and linked historical pages.
+  - index.html is the primary landing page.
+  - foyer_index.html and website/ are retained educational/resource archives.
+  - The archive is not a current service catalogue or statement of availability.
+  - Do not add health-information forms, client-record uploads, clinical intake, or
+    unverified client-portal links to GitHub Pages.
+  - Use the official practice profile for current contact, appointment, and portal
+    instructions.
+
+Separate Django prototype:
+  - therapy_site/ is excluded from the Pages build through _config.yml.
+  - It requires independent hosting, database, secret management, authentication,
+    privacy, security, and clinical review before any public use.
+  - The tracked SQLite file has not been inspected and remains a repository privacy
+    blocker. Do not use it for real client or patient data.
+  - Do not claim HIPAA compliance or clinical production approval.
+
+Validation:
+  - Static: run the repository static-site validation workflow.
+  - Django: from therapy_site/, run the commands documented in README.md.
+  - A successful Pages deployment does not mean the Django prototype is deployed.
