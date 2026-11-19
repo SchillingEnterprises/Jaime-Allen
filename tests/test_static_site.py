@@ -71,6 +71,36 @@ class StaticProjectSmokeTests(unittest.TestCase):
 
         self.assertEqual([], missing, "Broken local links/assets in foyer_index.html: " + ", ".join(missing))
 
+    def test_public_profile_matches_the_current_practice_listing(self):
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        for expected in (
+            "Licensed Marriage & Family Therapist",
+            "LMFT #164998",
+            "Insightful Matters Family Counseling Professionals",
+            "Virtual telehealth",
+            "https://www.insightfulmatters.com/jaime-allen",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, source)
+
+        for retired in (
+            "AMFT #163181",
+            "JaimeAllen777",
+            "paypal.me/FairyAstrology",
+            "SolarisFairyAstrology@yahoo.com",
+            "Professional profile update pending",
+        ):
+            with self.subTest(retired=retired):
+                self.assertNotIn(retired, source)
+
+    def test_legacy_biography_and_archive_disclose_current_scope(self):
+        biography = (ROOT / "website" / "page sections" / "about" / "jaime_allen.html").read_text(encoding="utf-8")
+        archive = (ROOT / "foyer_index.html").read_text(encoding="utf-8")
+        self.assertIn("LMFT #164998", biography)
+        self.assertIn("Insightful Matters Family Counseling Professionals", biography)
+        self.assertIn("historical educational resource archive", archive)
+        self.assertIn("https://www.insightfulmatters.com/jaime-allen", archive)
+
 
 if __name__ == "__main__":
     unittest.main()
