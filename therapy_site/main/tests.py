@@ -116,7 +116,7 @@ class ClientInteractionModelTests(TestCase):
     def test_site_discloses_prototype_and_no_health_information_boundary(self):
         response = self.client.get(reverse("home"))
         self.assertContains(response, "Prototype only.")
-        self.assertContains(response, "not a client portal")
+        self.assertContains(response, "or a client portal")
         self.assertContains(response, "Do not submit health information")
 
 
