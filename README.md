@@ -11,6 +11,10 @@ This repository contains related but separate website and application work for t
 
 The root `_config.yml` excludes the Django application and development metadata from the Jekyll Pages build. Keep this boundary intact: GitHub Pages is static hosting, not a Django runtime. Validate static-site changes and Django changes independently.
 
+## Professional profile and practice information
+
+The public landing page has had its legacy professional-license, supervisor, former-practice, and experience claims removed pending confirmation of Jaime's current details. Do not restore or publish credentials, license numbers, supervisory relationships, practice names, service claims, contact details, or booking links until they are verified and approved for public display. The demo client-portal control is intentionally marked as not configured; no HIPAA or regulatory-compliance certification is claimed.
+
 ## AI-support prototype and privacy
 
 The optional AI widget is a communication-support aid, not therapy, diagnosis, treatment, crisis counseling, emergency response, or a substitute for a qualified clinician.
