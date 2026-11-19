@@ -103,6 +103,23 @@ class ClientInteractionModelTests(TestCase):
         self.assertEqual(str(interaction), "Session session-test-01")
 
 
+    def test_about_and_contact_show_current_verified_professional_details(self):
+        for page_name in ("about", "contact"):
+            with self.subTest(page=page_name):
+                response = self.client.get(reverse(page_name))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "LMFT #164998")
+                self.assertContains(response, "Insightful Matters Family Counseling Professionals")
+                self.assertContains(response, "https://www.insightfulmatters.com/jaime-allen")
+                self.assertNotContains(response, "AMFT #163181")
+
+    def test_site_discloses_prototype_and_no_health_information_boundary(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "Prototype only.")
+        self.assertContains(response, "not a client portal")
+        self.assertContains(response, "Do not submit health information")
+
+
 class AIChatViewTests(TestCase):
     """Exercise validation, CSRF protection, persistence, and endpoint failures."""
 
