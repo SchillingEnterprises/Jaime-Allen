@@ -1,71 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}Contact - Jaime Allen Therapy{% endblock %}
+{% block title %}Current Practice Contact | Jaime Allen, LMFT{% endblock %}
+{% block meta_description %}Find the official Insightful Matters profile for Jaime Allen, LMFT, and use the practice’s current contact and appointment instructions.{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <h1 class="text-center mb-5">Contact Jaime Allen</h1>
-            
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="ai-optimized-card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-map-marker-alt fa-2x text-primary mb-3"></i>
-                            <h5>Location</h5>
-                            <p class="mb-0">Los Angeles, California</p>
-                            <small class="text-muted">Serving clients throughout California via telehealth</small>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="ai-optimized-card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-clock fa-2x text-primary mb-3"></i>
-                            <h5>Session Hours</h5>
-                            <p class="mb-0">By appointment</p>
-                            <small class="text-muted">Flexible scheduling available</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-3">Current practice contact</h1>
+            <p class="lead">Jaime Allen, Licensed Marriage &amp; Family Therapist · California LMFT #164998</p>
             <div class="ai-optimized-card">
-                <div class="card-body">
-                    <h3 class="text-center mb-4">Get in Touch</h3>
-                    <p class="text-center">For appointments and inquiries, please reach out through your preferred method:</p>
-                    
-                    <div class="row text-center">
-                        <div class="col-md-4 mb-3">
-                            <i class="fas fa-envelope fa-2x text-primary mb-2"></i>
-                            <h6>Email</h6>
-                            <p class="mb-0">[Email protected]</p>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <i class="fas fa-phone fa-2x text-primary mb-2"></i>
-                            <h6>Phone</h6>
-                            <p class="mb-0">[Phone number]</p>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <i class="fas fa-calendar fa-2x text-primary mb-2"></i>
-                            <h6>Consultation</h6>
-                            <p class="mb-0">Free 15-minute consultation available</p>
-                        </div>
-                    </div>
+                <div class="card-body text-center">
+                    <h2>Insightful Matters Family Counseling Professionals</h2>
+                    <p>Jaime’s public practice profile lists virtual telehealth as her service setting.</p>
+                    <p>For current contact information, appointment availability, fees, insurance information, and approved client-portal instructions, use the official practice profile.</p>
+                    <a class="btn btn-primary btn-lg" href="https://www.insightfulmatters.com/jaime-allen" target="_blank" rel="noopener noreferrer">Open official profile and contact options ↗</a>
                 </div>
             </div>
-
-            {% if ai_enabled %}
-            <div class="ai-suggestion mt-4 text-center">
-                <h4>Need Immediate Support?</h4>
-                <p class="mb-0">Our AI assistant is available 24/7 to provide guidance and support between sessions.</p>
-                <button class="btn btn-outline-light mt-2" onclick="document.getElementById('ai-chat-toggle').click()">
-                    Chat with AI Assistant
-                </button>
+            <div class="alert alert-warning mt-4" role="note">
+                <strong>Privacy notice:</strong> This Django application is an independent prototype, not the practice website or a client portal. Do not submit health information, clinical records, or other sensitive details through this site or its automated chat.
             </div>
-            {% endif %}
         </div>
     </div>
 </div>
