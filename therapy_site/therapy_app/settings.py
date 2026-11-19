@@ -16,11 +16,16 @@ load_dotenv(BASE_DIR / ".env")
 
 
 def _environment_flag(name: str, default: bool = False) -> bool:
-    """Parse a conventional boolean environment variable."""
+    """Parse explicit booleans and reject misspelled security configuration."""
     value = os.getenv(name)
     if value is None:
         return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ImproperlyConfigured(f"{name} must be a boolean value.")
 
 
 # DEBUG is intentionally off by default; enable it explicitly for local work.
