@@ -45,14 +45,15 @@ class StaticProjectSmokeTests(unittest.TestCase):
             parser.elements,
         )
         self.assertIn(
-            ("div", {"id": "root", "role": "main", "tabindex": "-1"}),
+            ("div", {"id": "root", "tabindex": "-1"}),
             parser.elements,
         )
         self.assertTrue(
             any(tag == "main" and attrs.get("id") == "main" for tag, attrs in parser.elements),
             "The skip link must target a real main-content fallback.",
         )
-        self.assertIn("If it remains here, use the official profile link above.", page.read_text(encoding="utf-8"))
+        self.assertIn("The interactive presentation is loading.", page.read_text(encoding="utf-8"))
+        self.assertIn('y("main",{id:"main",tabIndex:-1', page.read_text(encoding="utf-8"))
         source = page.read_text(encoding="utf-8")
         self.assertIn(".skip-link:focus", source)
         self.assertIn("#main:focus", source)
@@ -105,6 +106,23 @@ class StaticProjectSmokeTests(unittest.TestCase):
         self.assertIn("Insightful Matters Family Counseling Professionals", biography)
         self.assertIn("historical educational resource archive", archive)
         self.assertIn("https://www.insightfulmatters.com/jaime-allen", archive)
+
+    def test_research_index_discloses_static_educational_scope(self):
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn("Educational Topic Index — Static Demonstration", source)
+        self.assertIn("does not use AI agents", source)
+        self.assertIn("does not provide personalized clinical guidance", source)
+        for unsupported_claim in ("60% reduction", "75% couples report", "70-75% move", "N=2,231"):
+            with self.subTest(unsupported_claim=unsupported_claim):
+                self.assertNotIn(unsupported_claim, source)
+
+    def test_reflection_does_not_advertise_secure_sharing_or_a_client_portal(self):
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn("No secure sharing or client portal is available here", source)
+        self.assertIn("Do not enter names, identifying details, or sensitive health information.", source)
+        self.assertIn("This page cannot securely transmit or store my report.", source)
+        self.assertNotIn("Optional, Secure", source)
+        self.assertNotIn("secure client portal verified", source)
 
 
 if __name__ == "__main__":
