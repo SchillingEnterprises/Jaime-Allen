@@ -2,6 +2,10 @@
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+import re
+import shutil
+import subprocess
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -106,6 +110,27 @@ class StaticProjectSmokeTests(unittest.TestCase):
         self.assertIn("Insightful Matters Family Counseling Professionals", biography)
         self.assertIn("historical educational resource archive", archive)
         self.assertIn("https://www.insightfulmatters.com/jaime-allen", archive)
+
+
+    def test_bundled_browser_module_has_valid_javascript_syntax(self):
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("Node.js is not available in this environment.")
+
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        match = re.search(r'<script type="module">(.*?)</script>', source, re.DOTALL)
+        self.assertIsNotNone(match, "The homepage must include its interactive module.")
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".mjs", encoding="utf-8") as script:
+            script.write(match.group(1))
+            script.flush()
+            result = subprocess.run(
+                [node, "--check", script.name],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_research_index_discloses_static_educational_scope(self):
         source = (ROOT / "index.html").read_text(encoding="utf-8")
