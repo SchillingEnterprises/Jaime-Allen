@@ -9,7 +9,7 @@
             <!-- Hero Section -->
             <div class="text-center mb-5">
                 <h1>{{ optimized_content.title }}</h1>
-                <p class="lead">Transform your relationships through masterful communication skills backed by neuroscience and AI-enhanced practice</p>
+                <p class="lead">Explore educational communication frameworks and reflection exercises at your own pace.</p>
             </div>
 
             <!-- Communication Pyramid -->
@@ -148,22 +148,22 @@
                         <div class="col-md-4 mb-3">
                             <div class="text-center p-3">
                                 <i class="fas fa-comment-dots fa-2x text-primary mb-3"></i>
-                                <h6>Real-time Feedback</h6>
-                                <p class="small">Get instant feedback on your communication patterns</p>
+                                <h6>Reflection prompts</h6>
+                                <p class="small">Pause and consider what you want to communicate</p>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="text-center p-3">
                                 <i class="fas fa-scroll fa-2x text-success mb-3"></i>
-                                <h6>Practice Scenarios</h6>
-                                <p class="small">Role-play difficult conversations safely</p>
+                                <h6>Communication frameworks</h6>
+                                <p class="small">Explore listening, needs, and clear requests</p>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="text-center p-3">
                                 <i class="fas fa-chart-line fa-2x text-warning mb-3"></i>
-                                <h6>Progress Tracking</h6>
-                                <p class="small">Monitor your communication skill development</p>
+                                <h6>Practice suggestions</h6>
+                                <p class="small">Try a small, optional communication exercise</p>
                             </div>
                         </div>
                     </div>
@@ -178,7 +178,22 @@
                             <textarea id="communication-challenge" class="form-control" rows="4"
                                       maxlength="1700" required
                                       placeholder="Share a little context. Avoid names or identifying details."></textarea>
-                            <p class="form-text">Automated educational prompts only. Avoid sharing names or sensitive identifying details. Messages are not retained by default.</p>
+                            <p class="form-text">
+                                Provider: <strong>{{ ai_provider_label }}</strong>. If you send a message, it is transmitted to
+                                {{ ai_provider_destination }} for processing. Do not include names, contact details, or other identifying information.
+                                This site does not save messages in its database by default; the provider's data handling may differ.
+                            </p>
+                            <div class="form-check">
+                                <input class="form-check-input" id="communication-coach-consent"
+                                       type="checkbox" required aria-describedby="communication-coach-consent-help">
+                                <label class="form-check-label" for="communication-coach-consent">
+                                    I understand that my message will be sent to {{ ai_provider_label }} and consent to this processing.
+                                </label>
+                            </div>
+                            <p class="form-text" id="communication-coach-consent-help">
+                                This is an automated educational aid, not therapy, clinical advice, or crisis support.
+                                You can use the exercises without sending a message.
+                            </p>
                             <button id="communication-coach-submit" class="button-primary mt-2" type="submit">
                                 Explore a practical next step <span aria-hidden="true">→</span>
                             </button>
@@ -227,10 +242,10 @@
                 </div>
             </div>
 
-            <!-- AI Suggestions -->
+            <!-- Communication ideas -->
             {% if ai_suggestions %}
             <div class="ai-suggestion">
-                <h4 class="text-center mb-4"><i class="fas fa-lightbulb me-2"></i>AI-Enhanced Communication Tips</h4>
+                <h4 class="text-center mb-4"><i class="fas fa-lightbulb me-2"></i>Communication ideas</h4>
                 <div class="row">
                     {% for suggestion in ai_suggestions %}
                     <div class="col-md-6 mb-3">
@@ -285,46 +300,4 @@
 }
 </style>
 
-<script>
-function analyzeCommunication() {
-    const challengeText = document.querySelector('textarea').value;
-    const feedbackDiv = document.getElementById('communication-feedback');
-    
-    if (!challengeText.trim()) {
-        feedbackDiv.innerHTML = '<p class="text-warning">Please describe a communication challenge first.</p>';
-        feedbackDiv.style.display = 'block';
-        return;
-    }
-    
-    // Simulate AI analysis
-    feedbackDiv.innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Analyzing...</span>
-            </div>
-            <p class="mt-2">AI is analyzing your communication pattern...</p>
-        </div>
-    `;
-    feedbackDiv.style.display = 'block';
-    
-    // Simulate API call to AI backend
-    setTimeout(() => {
-        const responses = [
-            "Try using 'I feel' statements instead of 'You always' language.",
-            "Consider validating their perspective before sharing your own.",
-            "Practice the 3-second pause before responding to emotional topics.",
-            "Schedule a specific time to discuss this when both are calm.",
-            "Focus on the underlying need rather than the surface complaint."
-        ];
-        
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        
-        feedbackDiv.innerHTML = `
-            <h6><i class="fas fa-robot text-primary me-2"></i>AI Communication Coach Says:</h6>
-            <p class="mb-2">"${randomResponse}"</p>
-            <small class="text-muted">Based on Gottman Method and Nonviolent Communication principles</small>
-        `;
-    }, 2000);
-}
-</script>
 {% endblock %}

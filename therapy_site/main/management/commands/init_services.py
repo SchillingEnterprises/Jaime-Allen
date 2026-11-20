@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
+
 from main.models import Service
+
 
 class Command(BaseCommand):
     help = 'Initialize default services'
@@ -41,7 +43,7 @@ class Command(BaseCommand):
             {
                 'title': 'Effective Communication',
                 'slug': 'effective-communication',
-                'description': 'Master the art of connection through proven communication frameworks and AI-enhanced practice.',
+                'description': 'Explore educational exercises for clearer, more thoughtful communication.',
                 'service_type': 'effective_communication',
                 'icon': '🗣️',
                 'order': 5
@@ -49,8 +51,11 @@ class Command(BaseCommand):
         ]
 
         for service_data in services:
-            Service.objects.filter(slug=service_data['slug']).delete()
-            service = Service.objects.create(**service_data)
+            service, created = Service.objects.get_or_create(
+                slug=service_data['slug'],
+                defaults=service_data,
+            )
+            result = 'Created' if created else 'Kept existing'
             self.stdout.write(
-                self.style.SUCCESS(f'Created service: {service.title}')
+                self.style.SUCCESS(f'{result} service: {service.title}')
             )
