@@ -63,23 +63,29 @@ class StaticProjectSmokeTests(unittest.TestCase):
         self.assertIn(".skip-link:focus", source)
         self.assertIn("#main:focus", source)
 
-    def test_homepage_links_to_spotify_without_embedding_or_autoplay(self):
+    def test_homepage_embeds_spotify_album_with_accessible_controls(self):
         page = ROOT / "index.html"
         source = page.read_text(encoding="utf-8")
         parser = LocalReferenceParser()
         parser.feed(source)
 
-        spotify_url = "https://open.spotify.com/album/2wnMydnLP55O2mTzfwc6SZ"
-        links = [
+        spotify_url = "https://open.spotify.com/embed/album/2wnMydnLP55O2mTzfwc6SZ?utm_source=oembed"
+        embeds = [
             attributes
             for tag, attributes in parser.elements
-            if tag == "a" and attributes.get("href") == spotify_url
+            if tag == "iframe" and attributes.get("src") == spotify_url
         ]
-        self.assertEqual(len(links), 1)
-        self.assertEqual(links[0].get("target"), "_blank")
-        self.assertEqual(links[0].get("rel"), "noopener noreferrer")
-        self.assertIn("Listen to La Dolce Riviera on Spotify", source)
-        self.assertFalse(any(tag == "iframe" for tag, _ in parser.elements))
+        self.assertEqual(len(embeds), 1)
+        self.assertEqual(embeds[0].get("title"), "Spotify player: La Dolce Riviera")
+        self.assertEqual(embeds[0].get("width"), "100%")
+        self.assertEqual(embeds[0].get("height"), "352")
+        self.assertEqual(embeds[0].get("loading"), "lazy")
+        self.assertFalse(
+            any(
+                tag == "a" and attributes.get("href") == spotify_url
+                for tag, attributes in parser.elements
+            )
+        )
 
     def test_legacy_static_page_local_references_resolve(self):
         pages = [ROOT / "foyer_index.html", *sorted((ROOT / "website").rglob("*.html"))]
