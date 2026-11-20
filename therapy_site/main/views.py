@@ -32,16 +32,9 @@ FALLBACK_AI_RESPONSE = (
 def home(request):
     """Render the home page and make a CSRF cookie available to the chat widget."""
     services = Service.objects.filter(is_active=True)
-    optimized_context = {
-        f"{service.service_type}_optimized": content_optimizer.optimize_content(
-            service.service_type
-        )
-        for service in services
-    }
     context = {
         "services": services,
         "ai_enabled": therapy_ai.ai_enabled,
-        **optimized_context,
     }
     return render(request, "index.html", context)
 
@@ -55,7 +48,7 @@ def about(request):
 @ensure_csrf_cookie
 def service_detail(request, service_slug):
     """Render the detail page for a service identified by its unique slug."""
-    service = get_object_or_404(Service, slug=service_slug)
+    service = get_object_or_404(Service, slug=service_slug, is_active=True)
     optimized_content = content_optimizer.optimize_content(service.service_type)
     template_by_service_type = {
         "conflict_resolution": "services/conflict_resolution.html",

@@ -31,6 +31,7 @@ class StaticProjectSmokeTests(unittest.TestCase):
             ROOT / "index.html",
             ROOT / "foyer_index.html",
             ROOT / "website" / "static" / "css" / "styles.css",
+            ROOT / "website" / "static" / "js" / "current-year.js",
             ROOT / "website" / "page sections" / "about" / "jaime_allen.html",
             ROOT / "therapy_site" / "manage.py",
             ROOT / "therapy_site" / "requirements.txt",
@@ -63,23 +64,57 @@ class StaticProjectSmokeTests(unittest.TestCase):
         self.assertIn("#main:focus", source)
 
     def test_legacy_static_page_local_references_resolve(self):
-        page = ROOT / "foyer_index.html"
-        parser = LocalReferenceParser()
-        parser.feed(page.read_text(encoding="utf-8"))
+        pages = [ROOT / "foyer_index.html", *sorted((ROOT / "website").rglob("*.html"))]
         missing = []
 
-        for tag, attribute, reference in parser.references:
-            parsed = urlsplit(reference)
-            if parsed.scheme or parsed.netloc or reference.startswith(("#", "//")):
-                continue
-            local_path = unquote(parsed.path)
-            if not local_path:
-                continue
-            target = (ROOT / local_path).resolve()
-            if not target.is_relative_to(ROOT.resolve()) or not target.exists():
-                missing.append(f"{tag}[{attribute}]={reference}")
+        for page in pages:
+            parser = LocalReferenceParser()
+            parser.feed(page.read_text(encoding="utf-8"))
+            for tag, attribute, reference in parser.references:
+                parsed = urlsplit(reference)
+                if parsed.scheme or parsed.netloc or reference.startswith(("#", "//")):
+                    continue
+                local_path = unquote(parsed.path)
+                if not local_path:
+                    continue
+                target = (page.parent / local_path).resolve()
+                if not target.is_relative_to(ROOT.resolve()) or not target.exists():
+                    missing.append(f"{page.relative_to(ROOT)}: {tag}[{attribute}]={reference}")
 
-        self.assertEqual([], missing, "Broken local links/assets in foyer_index.html: " + ", ".join(missing))
+        self.assertEqual([], missing, "Broken local links/assets: " + ", ".join(missing))
+
+    def test_legacy_footers_use_a_safe_current_year_script(self):
+        pages = (
+            ROOT / "foyer_index.html",
+            ROOT / "website" / "page sections" / "healthy_relationship_stages.html",
+        )
+        for page in pages:
+            with self.subTest(page=page.relative_to(ROOT)):
+                source = page.read_text(encoding="utf-8")
+                self.assertRegex(source, r'<time data-current-year datetime="\d{4}">\d{4}</time>')
+                self.assertNotIn("document.write", source)
+                self.assertNotIn("bootstrap.bundle.min.js", source)
+
+    def test_legacy_embedded_audio_players_have_accessible_titles(self):
+        pages = [ROOT / "foyer_index.html", *sorted((ROOT / "website").rglob("*.html"))]
+        for page in pages:
+            parser = LocalReferenceParser()
+            parser.feed(page.read_text(encoding="utf-8"))
+            for tag, attributes in parser.elements:
+                if tag == "iframe":
+                    with self.subTest(page=page.relative_to(ROOT), title=attributes.get("title")):
+                        self.assertEqual(attributes.get("title"), "Spotify audio player")
+
+    def test_legacy_archive_media_and_layout_are_accessible(self):
+        pages = [ROOT / "foyer_index.html", *sorted((ROOT / "website").rglob("*.html"))]
+        for page in pages:
+            parser = LocalReferenceParser()
+            parser.feed(page.read_text(encoding="utf-8"))
+            for tag, attributes in parser.elements:
+                if tag == "img":
+                    with self.subTest(page=page.relative_to(ROOT), image=attributes.get("src")):
+                        self.assertIn("alt", attributes)
+                self.assertNotEqual(tag, "center", f"Use a styled container instead of <center> in {page}.")
 
     def test_public_profile_matches_the_current_practice_listing(self):
         source = (ROOT / "index.html").read_text(encoding="utf-8")
@@ -111,7 +146,6 @@ class StaticProjectSmokeTests(unittest.TestCase):
         self.assertIn("historical educational resource archive", archive)
         self.assertIn("https://www.insightfulmatters.com/jaime-allen", archive)
 
-
     def test_bundled_browser_module_has_valid_javascript_syntax(self):
         node = shutil.which("node")
         if node is None:
@@ -130,6 +164,20 @@ class StaticProjectSmokeTests(unittest.TestCase):
                 text=True,
                 check=False,
             )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_shared_current_year_script_has_valid_javascript_syntax(self):
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("Node.js is not available in this environment.")
+
+        script = ROOT / "website" / "static" / "js" / "current-year.js"
+        result = subprocess.run(
+            [node, "--check", str(script)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_research_index_discloses_static_educational_scope(self):

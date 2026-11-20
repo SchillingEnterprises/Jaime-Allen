@@ -1,10 +1,13 @@
 """Unit and integration tests for service models and public HTTP endpoints."""
 
 import json
+from io import StringIO
 from unittest.mock import Mock, patch
 
 import requests
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management import call_command
 from django.db import IntegrityError
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -88,6 +91,36 @@ class ServiceModelTests(TestCase):
                 description="Duplicate service.",
                 service_type="serenity",
             )
+
+
+class ServiceInitializationCommandTests(TestCase):
+    """Default service setup must be repeatable without replacing edited content."""
+
+    def test_command_preserves_existing_services_and_is_idempotent(self):
+        existing_service = Service.objects.create(
+            title="Custom communication resource",
+            slug="effective-communication",
+            description="Custom description maintained by an editor.",
+            service_type="effective_communication",
+            icon="custom-icon",
+            is_active=False,
+            order=99,
+        )
+
+        call_command("init_services", stdout=StringIO())
+        existing_service.refresh_from_db()
+        self.assertEqual(existing_service.title, "Custom communication resource")
+        self.assertEqual(
+            existing_service.description,
+            "Custom description maintained by an editor.",
+        )
+        self.assertEqual(existing_service.icon, "custom-icon")
+        self.assertFalse(existing_service.is_active)
+        self.assertEqual(existing_service.order, 99)
+        self.assertEqual(Service.objects.count(), 5)
+
+        call_command("init_services", stdout=StringIO())
+        self.assertEqual(Service.objects.count(), 5)
 
 
 class ClientInteractionModelTests(TestCase):
@@ -336,6 +369,34 @@ class AIServiceTests(TestCase):
 class PublicPageTests(TestCase):
     """Verify the primary public pages render without hidden prerequisites."""
 
+    def test_admin_branding_uses_existing_assets_and_accurate_scope(self):
+        admin_user = get_user_model().objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="test-password",
+        )
+        self.client.force_login(admin_user)
+
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Jaime Allen Therapy Administration")
+        self.assertContains(response, "Educational prototype administration")
+        self.assertNotContains(response, "AI-Enhanced Therapy Platform")
+        self.assertNotContains(response, "therapy-logo.png")
+
+    def test_external_framework_assets_use_subresource_integrity(self):
+        response = self.client.get(reverse("home"))
+
+        for integrity in (
+            "sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH",
+            "sha384-nRgPTkuX86pH8yjPJUAFuASXQSSl2/bBUiNV47vSYpKFxHJhbcrGnmlYpYJMeD7a",
+            "sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz",
+        ):
+            with self.subTest(integrity=integrity):
+                self.assertContains(response, f'integrity="{integrity}"')
+        self.assertContains(response, 'crossorigin="anonymous"')
+
     @override_settings(AI_PROVIDER="ollama", OLLAMA_BASE_URL="http://127.0.0.1:11434")
     def test_chat_discloses_ollama_provider_and_requires_explicit_consent(self):
         response = self.client.get(reverse("home"))
@@ -388,5 +449,37 @@ class PublicPageTests(TestCase):
         response = self.client.get(
             reverse("service_detail", args=["this-service-does-not-exist"])
         )
+        self.assertEqual(response.status_code, 404)
+
+    def test_inactive_service_detail_is_not_public(self):
+        service = Service.objects.create(
+            title="Unpublished resource",
+            slug="unpublished-resource",
+            description="This resource is not published.",
+            service_type="effective_communication",
+            is_active=False,
+        )
+
+        response = self.client.get(reverse("service_detail", args=[service.slug]))
 
         self.assertEqual(response.status_code, 404)
+
+    @override_settings(AI_PROVIDER="ollama", OLLAMA_BASE_URL="http://127.0.0.1:11434")
+    def test_communication_coach_discloses_provider_and_requires_consent(self):
+        service = Service.objects.create(
+            title="Clear Communication",
+            slug="clear-communication",
+            description="Practice healthier communication habits.",
+            service_type="effective_communication",
+            is_active=True,
+        )
+
+        response = self.client.get(reverse("service_detail", args=[service.slug]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Provider:")
+        self.assertContains(response, "the Ollama service configured by this site")
+        self.assertContains(response, 'id="communication-coach-consent"')
+        self.assertContains(response, "consent to this processing")
+        self.assertContains(response, "provider's data handling may differ")
+        self.assertNotContains(response, "Progress Tracking")

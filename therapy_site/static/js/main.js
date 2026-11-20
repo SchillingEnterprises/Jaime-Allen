@@ -51,10 +51,11 @@ function initializeAnchorNavigation() {
 function initializeCommunicationCoach() {
     const form = document.getElementById("communication-coach-form");
     const messageInput = document.getElementById("communication-challenge");
+    const consentCheckbox = document.getElementById("communication-coach-consent");
     const feedback = document.getElementById("communication-feedback");
     const submitButton = document.getElementById("communication-coach-submit");
 
-    if (!form || !messageInput || !feedback || !submitButton) {
+    if (!form || !messageInput || !consentCheckbox || !feedback || !submitButton) {
         return;
     }
 
@@ -72,6 +73,13 @@ function initializeCommunicationCoach() {
         if (challenge.length > 1_700) {
             feedback.textContent = "Please keep your description under 1,700 characters.";
             feedback.dataset.state = "error";
+            return;
+        }
+
+        if (!consentCheckbox.checked) {
+            feedback.textContent = "Please review the provider disclosure and consent before sending.";
+            feedback.dataset.state = "error";
+            consentCheckbox.focus();
             return;
         }
 
@@ -102,7 +110,7 @@ function initializeCommunicationCoach() {
                     "Content-Type": "application/json",
                     "X-CSRFToken": getDjangoCSRFToken()
                 },
-                body: JSON.stringify({ message: requestMessage })
+                body: JSON.stringify({ message: requestMessage, consent: true })
             });
 
             const result = await response.json();
