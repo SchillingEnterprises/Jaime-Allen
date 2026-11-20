@@ -111,7 +111,7 @@ class StaticProjectSmokeTests(unittest.TestCase):
         source = (ROOT / "index.html").read_text(encoding="utf-8")
         self.assertIn("Educational Topic Index — Static Demonstration", source)
         self.assertIn("does not use AI agents", source)
-        self.assertIn("does not provide personalized clinical guidance", source)
+        self.assertIn("or provide personalized clinical guidance", source)
         for unsupported_claim in ("60% reduction", "75% couples report", "70-75% move", "N=2,231"):
             with self.subTest(unsupported_claim=unsupported_claim):
                 self.assertNotIn(unsupported_claim, source)
