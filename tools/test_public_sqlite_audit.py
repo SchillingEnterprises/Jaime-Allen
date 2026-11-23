@@ -12,8 +12,8 @@ class PublicSQLiteAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             database = Path(directory) / "sample.sqlite3"
             connection = sqlite3.connect(database)
-            connection.execute("CREATE TABLE contacts (id INTEGER PRIMARY KEY, email TEXT, note TEXT)")
-            connection.execute("INSERT INTO contacts (email, note) VALUES (?, ?)", ("person@example.test", "private note text"))
+            connection.execute("CREATE TABLE contacts (id INTEGER PRIMARY KEY, email TEXT, note TEXT, password TEXT)")
+            connection.execute("INSERT INTO contacts (email, note, password) VALUES (?, ?, ?)", ("person@example.test", "private note text", "not-a-real-hash"))
             connection.commit()
             connection.close()
 
@@ -24,9 +24,11 @@ class PublicSQLiteAuditTests(unittest.TestCase):
             self.assertTrue(report["manual_privacy_review_required"])
             self.assertEqual(report["total_rows"], 1)
             self.assertEqual(report["nonempty_sensitive_shaped_fields"][0]["email_pattern_rows"], 1)
+            self.assertTrue(any(field["column"] == "password" and field["nonempty_values"] == 1 for field in report["credential_columns"]))
             self.assertFalse(report["values_printed"])
             self.assertNotIn("person@example.test", serialized)
             self.assertNotIn("private note text", serialized)
+            self.assertNotIn("not-a-real-hash", serialized)
 
     def test_empty_database_does_not_report_populated_sensitive_fields(self):
         with tempfile.TemporaryDirectory() as directory:
