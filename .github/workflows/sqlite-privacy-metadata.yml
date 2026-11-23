@@ -4,7 +4,6 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - "therapy_site/db.sqlite3"
       - "tools/audit_public_sqlite.py"
       - "tools/test_public_sqlite_audit.py"
       - ".github/workflows/sqlite-privacy-metadata.yml"
@@ -19,8 +18,9 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Test metadata scanner with synthetic data
+      - name: Test metadata scanner with synthetic data only
         working-directory: tools
         run: python -m unittest -v test_public_sqlite_audit.py
-      - name: Report database schema and aggregate indicators only
-        run: python tools/audit_public_sqlite.py therapy_site/db.sqlite3
+      # Never scan therapy_site/db.sqlite3 in public CI. The tracked database
+      # is unreviewed and may contain sensitive records; inspect it only in an
+      # appropriately private, authorized environment after a data-retention review.
