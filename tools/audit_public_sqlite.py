@@ -10,10 +10,12 @@ from pathlib import Path
 from urllib.parse import quote
 
 SENSITIVE_NAME = re.compile(
-    r"(email|phone|mobile|name|address|client|patient|appointment|chat|message|"
-    r"note|symptom|diagnos|birth|dob|user|profile|contact|session|consent|ip)",
+    r"(?:^|_)(?:email|phone|mobile|username|first_name|last_name|full_name|"
+    r"display_name|address|client|patient|appointment|chat|message|note|"
+    r"symptom|diagnos(?:is)?|birth|dob|user_id|profile|contact|session|consent|ip)(?:_|$)",
     re.IGNORECASE,
 )
+CREDENTIAL_NAME = re.compile(r"(password|secret|token|api[_-]?key|credential)", re.IGNORECASE)
 EMAIL = re.compile(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b")
 PHONE = re.compile(r"(?<!\d)(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}(?!\d)")
 MAX_VALUES_PER_COLUMN = 100_000
@@ -32,6 +34,7 @@ def scan_database(path: Path) -> dict:
     tables = []
     total_rows = 0
     review_fields = []
+    credential_fields = []
     scan_incomplete = False
     try:
         table_names = [
@@ -49,6 +52,18 @@ def scan_database(path: Path) -> dict:
                 column_name = column["name"]
                 column_type = (column["type"] or "").upper()
                 item = {"name": column_name, "type": column_type}
+                if CREDENTIAL_NAME.search(column_name):
+                    column_sql = quote_identifier(column_name)
+                    nonempty = connection.execute(
+                        f"SELECT COUNT(*) FROM {table_sql} "
+                        f"WHERE {column_sql} IS NOT NULL AND TRIM(CAST({column_sql} AS TEXT)) <> ''"
+                    ).fetchone()[0]
+                    credential_fields.append({
+                        "table": table_name,
+                        "column": column_name,
+                        "nonempty_values": nonempty,
+                        "values_read": False,
+                    })
                 if SENSITIVE_NAME.search(column_name):
                     column_sql = quote_identifier(column_name)
                     nonempty = connection.execute(
@@ -98,7 +113,8 @@ def scan_database(path: Path) -> dict:
         "total_rows": total_rows,
         "tables": tables,
         "nonempty_sensitive_shaped_fields": review_fields,
-        "manual_privacy_review_required": bool(review_fields) or scan_incomplete,
+        "credential_columns": credential_fields,
+        "manual_privacy_review_required": bool(review_fields) or bool(credential_fields) or scan_incomplete,
         "scan_incomplete": scan_incomplete,
         "values_printed": False,
     }
