@@ -14,15 +14,13 @@ class PublicPublicationBoundaryTests(unittest.TestCase):
         self.assertRegex(config, r'(?m)^\s*-\s+"\*\*/\*\.sqlite3-wal"\s*$')
         self.assertRegex(config, r'(?m)^\s*-\s+"\*\*/\*\.sqlite3-shm"\s*$')
 
-    def test_pages_workflow_does_not_build_or_publish_the_django_app(self):
-        workflow_dir = ROOT / ".github" / "workflows"
-        workflows = "\n".join(
-            path.read_text(encoding="utf-8")
-            for path in sorted(workflow_dir.glob("*.yml"))
-        )
-        self.assertIn("static-site-validation.yml", workflows)
-        self.assertNotRegex(workflows, r"(?m)^\s*-\s*therapy_site/\*\*")
-        self.assertNotIn("working-directory: therapy_site", workflows)
+    def test_static_site_validation_is_separate_from_django_ci(self):
+        workflow = (
+            ROOT / ".github" / "workflows" / "static-site-validation.yml"
+        ).read_text(encoding="utf-8")
+        self.assertIn("name: Jaime static-site validation", workflow)
+        self.assertNotIn("therapy_site/**", workflow)
+        self.assertNotIn("working-directory: therapy_site", workflow)
 
 
 if __name__ == "__main__":
