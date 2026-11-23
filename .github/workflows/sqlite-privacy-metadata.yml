@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - "therapy_site/db.sqlite3"
       - "tools/audit_public_sqlite.py"
       - "tools/test_public_sqlite_audit.py"
       - ".github/workflows/sqlite-privacy-metadata.yml"
@@ -16,8 +17,20 @@ jobs:
   metadata-review:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source
+      - name: Check out source and history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - name: Reject changes to the tracked SQLite database
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if git diff --name-only "$BASE_SHA...HEAD" | grep -Fxq "therapy_site/db.sqlite3"; then
+            echo "::error::Do not modify the tracked SQLite database in a public pull request. Use an approved private data-retention and migration process."
+            exit 1
+          fi
       - name: Test metadata scanner with synthetic data only
         working-directory: tools
         run: python -m unittest -v test_public_sqlite_audit.py
