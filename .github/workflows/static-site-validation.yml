@@ -8,6 +8,7 @@ on:
       - "foyer_index.html"
       - "website/**"
       - "tests/test_static_site.py"
+      - "tests/test_publication_boundary.py"
       - ".github/workflows/static-site-validation.yml"
   pull_request:
     branches: [master]
