@@ -28,13 +28,8 @@ jobs:
         run: |
           set -euo pipefail
           change="$(git diff --name-status "$BASE_SHA...HEAD" -- therapy_site/db.sqlite3)"
-          if [[ -n "$change" && "$change" != 
-      - name: Test metadata scanner with synthetic data only
-        working-directory: tools
-        run: python -m unittest -v test_public_sqlite_audit.py
-      # Never scan or print contents from a real database in public CI.
-      # Use only synthetic fixtures with tools/test_public_sqlite_audit.py.
-D\ttherapy_site/db.sqlite3' ]]; then
+          expected_status="$(printf 'D\ttherapy_site/db.sqlite3')"
+          if [[ -n "$change" && "$change" != "$expected_status" ]]; then
             echo "::error::The public database may only be removed from the current tree, never modified or replaced in a pull request. Handle data retention privately."
             exit 1
           fi
@@ -44,6 +39,5 @@ D\ttherapy_site/db.sqlite3' ]]; then
       - name: Test metadata scanner with synthetic data only
         working-directory: tools
         run: python -m unittest -v test_public_sqlite_audit.py
-      # Never scan therapy_site/db.sqlite3 in public CI. The tracked database
-      # is unreviewed and may contain sensitive records; inspect it only in an
-      # appropriately private, authorized environment after a data-retention review.
+      # Never scan or print contents from a real database in public CI.
+      # Use only synthetic fixtures with tools/test_public_sqlite_audit.py.
