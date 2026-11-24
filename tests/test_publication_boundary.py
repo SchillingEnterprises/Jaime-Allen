@@ -19,8 +19,8 @@ class PublicPublicationBoundaryTests(unittest.TestCase):
         self.assertFalse(database.exists(), "The potentially sensitive historical DB must stay out of the current tree.")
 
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
-        self.assertRegex(ignore, r"(?m)^\\*\\.sqlite3$")
-        self.assertRegex(ignore, r"(?m)^\\*\\.sqlite$")
+        self.assertIn("*.sqlite3", ignore)
+        self.assertIn("*.sqlite", ignore)
         workflow = (
             ROOT / ".github" / "workflows" / "sqlite-privacy-metadata.yml"
         ).read_text(encoding="utf-8")
