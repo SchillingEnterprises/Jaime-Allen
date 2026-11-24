@@ -17,10 +17,23 @@ jobs:
   metadata-review:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source
+      - name: Check out source and history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Test metadata scanner with synthetic data
+        with:
+          fetch-depth: 0
+      - name: Reject changes to the tracked SQLite database
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if git diff --name-only "$BASE_SHA...HEAD" | grep -Fxq "therapy_site/db.sqlite3"; then
+            echo "::error::Do not modify the tracked SQLite database in a public pull request. Use an approved private data-retention and migration process."
+            exit 1
+          fi
+      - name: Test metadata scanner with synthetic data only
         working-directory: tools
         run: python -m unittest -v test_public_sqlite_audit.py
-      - name: Report database schema and aggregate indicators only
-        run: python tools/audit_public_sqlite.py therapy_site/db.sqlite3
+      # Never scan therapy_site/db.sqlite3 in public CI. The tracked database
+      # is unreviewed and may contain sensitive records; inspect it only in an
+      # appropriately private, authorized environment after a data-retention review.
