@@ -23,8 +23,12 @@ Separate Django prototype:
   - therapy_site/ is excluded from the Pages build through _config.yml.
   - It requires independent hosting, database, secret management, authentication,
     privacy, security, and clinical review before any public use.
-  - The tracked SQLite file has not been inspected and remains a repository privacy
-    blocker. Do not use it for real client or patient data.
+  - The development SQLite file has been removed from the current default-branch
+    tree. Run migrations and `python manage.py init_services` to create a fresh
+    local database; create a local admin separately.
+  - Earlier Git commits may still contain the old database. Keep this repository
+    private until its contents and historical exposure have been reviewed. Do not
+    re-add a SQLite file or use the prototype with real client or patient data.
   - Do not claim HIPAA compliance or clinical production approval.
 
 Validation:
