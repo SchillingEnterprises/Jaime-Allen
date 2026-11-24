@@ -6,9 +6,11 @@ This public repository contains a static relationship-support website and a sepa
 
 ## Sensitive data and repository exposure
 
-A SQLite database file is tracked under `therapy_site/`. Its records have not been inspected during this maintenance work. Treat the file as potentially sensitive until the project owner has reviewed it in a suitably private environment. Do not add real client, patient, appointment, or other sensitive information to this repository.
+The tracked SQLite development database has been removed from the current default-branch tree. A prior version was committed while this repository was public, so its historical contents may remain accessible through earlier commits, forks, caches, and existing clones. Treat it as potentially sensitive until the responsible data owner has reviewed it privately. Keep the repository private until the review and coordinated historical-exposure response are complete.
 
-If sensitive information is or has been stored there, removing the current database file is not sufficient: earlier commits may still contain copies. Review the data and history privately, preserve any required records securely, and plan an appropriately reviewed history-removal and exposure-response process. Rotate any credentials included in exposed history.
+The local Django database is now created from migrations; the historical database is not restored automatically. Do not re-add or replace a tracked SQLite file. Do not add real client, patient, appointment, or other sensitive information to this repository. If a replacement data source is approved for production, it must be a secured private managed database with documented access, retention, backup, and deletion controls.
+
+Removing the current file is not a history rewrite. Any historical database, credentials, or sensitive records need a separate, approved exposure-response and coordinated clone/fork/cache remediation plan.
 
 ## AI provider and message handling
 

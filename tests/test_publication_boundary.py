@@ -14,6 +14,19 @@ class PublicPublicationBoundaryTests(unittest.TestCase):
         self.assertRegex(config, r'(?m)^\s*-\s+"\*\*/\*\.sqlite3-wal"\s*$')
         self.assertRegex(config, r'(?m)^\s*-\s+"\*\*/\*\.sqlite3-shm"\s*$')
 
+    def test_therapy_sqlite_database_is_not_tracked_or_reintroduced(self):
+        database = ROOT / "therapy_site" / "db.sqlite3"
+        self.assertFalse(database.exists(), "The potentially sensitive historical DB must stay out of the current tree.")
+
+        ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn("*.sqlite3", ignore)
+        self.assertIn("*.sqlite", ignore)
+        workflow = (
+            ROOT / ".github" / "workflows" / "sqlite-privacy-metadata.yml"
+        ).read_text(encoding="utf-8")
+        self.assertIn("Allow only removal of the historical tracked SQLite file", workflow)
+        self.assertIn("never modified or replaced", workflow)
+
     def test_static_site_validation_is_separate_from_django_ci(self):
         workflow = (
             ROOT / ".github" / "workflows" / "static-site-validation.yml"

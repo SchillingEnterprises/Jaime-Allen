@@ -20,7 +20,7 @@ The official profile currently lists:
 - `index.html` is the primary static landing page published with GitHub Pages.
 - `foyer_index.html` is a retained historical relationship-resource archive and links into older material under `website/`.
 - `website/` contains legacy static pages and styles. The old biography page has been replaced with a current-profile summary; other historical topic pages are explicitly presented as an archive, not as a live service catalogue.
-- `therapy_site/` contains a separate Django application prototype, including dependencies, migrations, static assets, tests, and a development database. It is not part of the GitHub Pages site.
+- `therapy_site/` contains a separate Django application prototype, including dependencies, migrations, static assets, and tests. Its SQLite development database is created locally by migrations and is deliberately not tracked in the repository.
 
 The root `_config.yml` excludes the Django application and development metadata from the Jekyll Pages build. Keep this boundary intact: GitHub Pages is static hosting, not a Django runtime. Validate static-site changes and Django changes independently.
 
@@ -45,9 +45,9 @@ Do not enable public use until a qualified professional and responsible operator
 
 ## Data and public-repository warning
 
-**This is a public GitHub repository. A SQLite database file is tracked under `therapy_site/`, and its contents and historical versions may be accessible to anyone who can view the repository.** The database has not been opened or reviewed as part of this maintenance work. Do not place real client, patient, appointment, or other sensitive records in this repository.
+**The current default-branch tree no longer contains the SQLite database.** A previous version of the development database was committed while this repository was public. Removing it from the current tree does not remove historical copies from Git history, forks, caches, or existing clones. Treat the historical database as potentially sensitive until a responsible data owner has reviewed it privately. The repository should remain private until that review and a coordinated historical-exposure response are complete.
 
-Before using the Django prototype with real people or sensitive information, move data to an appropriately secured private database. If sensitive information is or has been stored in the tracked database, removing the current file alone is not sufficient: earlier commits may still contain copies. Review the data and history privately, preserve any required records securely, and plan a reviewed history-removal and exposure-response process. Rotate any credentials found in exposed history.
+The prototype now creates a local development database from migrations. Run `python manage.py migrate` and `python manage.py init_services` from `therapy_site/`; create any local administrator with `python manage.py createsuperuser`. The removed development database is not restored automatically. Never commit a replacement SQLite file, real client/patient/appointment records, or production credentials. Use a secured private managed database for any approved deployment.
 
 ## Requirements and local development
 
@@ -64,6 +64,8 @@ Copy `.env.example` to `.env` and set local development values. Never commit rea
 
 ```bash
 python manage.py migrate
+python manage.py init_services
+python manage.py createsuperuser
 python manage.py runserver
 ```
 
