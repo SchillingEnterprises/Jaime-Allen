@@ -64,6 +64,8 @@ Copy `.env.example` to `.env` and set local development values. Never commit rea
 
 ```bash
 python manage.py migrate
+python manage.py init_services
+python manage.py createsuperuser
 python manage.py runserver
 ```
 
