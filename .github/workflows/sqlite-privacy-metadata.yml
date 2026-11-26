@@ -1,43 +1,65 @@
-name: Private SQLite metadata review
+name: SQLite repository privacy guard
 
 on:
+  push:
+    branches: [master]
   pull_request:
     branches: [master]
-    paths:
-      - "therapy_site/db.sqlite3"
-      - "tools/audit_public_sqlite.py"
-      - "tools/test_public_sqlite_audit.py"
-      - ".github/workflows/sqlite-privacy-metadata.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: sqlite-privacy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   metadata-review:
+    name: Tracked-file privacy guard and synthetic tests
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Check out source and history
+      - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-      - name: Allow only removal of the historical tracked SQLite file
-        if: github.event_name == 'pull_request'
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+
+      # Inspect Git path metadata only. Never open, scan, or print database contents.
+      - name: Reject tracked SQLite database files
+        shell: bash
         run: |
           set -euo pipefail
-          change="$(git diff --name-status "$BASE_SHA...HEAD" -- therapy_site/db.sqlite3)"
-          expected_status="$(printf 'D\ttherapy_site/db.sqlite3')"
-          if [[ -n "$change" && "$change" != "$expected_status" ]]; then
-            echo "::error::The public database may only be removed from the current tree, never modified or replaced in a pull request. Handle data retention privately."
-            exit 1
-          fi
-          if [[ -n "$change" ]]; then
-            echo "Confirmed: the historical database is deleted from the current tree."
-          fi
+          python - <<'PY'
+          import re
+          import subprocess
+          import sys
+
+          tracked = subprocess.run(
+              ["git", "ls-files", "-z"],
+              check=True,
+              capture_output=True,
+          ).stdout.split(b"\\0")
+          sqlite_path = re.compile(rb"\\.sqlite3?(?:[-.].*)?$", re.IGNORECASE)
+          matches = [
+              path.decode("utf-8", errors="backslashreplace")
+              for path in tracked
+              if path and sqlite_path.search(path)
+          ]
+          if matches:
+              print(
+                  "::error::Tracked SQLite database or sidecar files are prohibited. "
+                  "Only Git path metadata was inspected; file contents were not opened."
+              )
+              for path in matches:
+                  print(f"Tracked database path: {path}")
+              sys.exit(1)
+          print("No tracked SQLite database or sidecar paths found.")
+
+          if not any(path for path in tracked):
+              print("The repository tree contains no tracked paths.")
+          PY
+
       - name: Test metadata scanner with synthetic data only
         working-directory: tools
         run: python -m unittest -v test_public_sqlite_audit.py
-      # Never scan or print contents from a real database in public CI.
-      # Use only synthetic fixtures with tools/test_public_sqlite_audit.py.
+
+      # Do not add a step that scans, exports, uploads, or logs real database data.
