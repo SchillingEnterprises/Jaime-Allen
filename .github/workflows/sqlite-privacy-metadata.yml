@@ -10,10 +10,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: sqlite-privacy-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   metadata-review:
     name: Tracked-file privacy guard and synthetic tests
@@ -37,8 +33,8 @@ jobs:
               ["git", "ls-files", "-z"],
               check=True,
               capture_output=True,
-          ).stdout.split(b"\\0")
-          sqlite_path = re.compile(rb"\\.sqlite3?(?:[-.].*)?$", re.IGNORECASE)
+          ).stdout.split(b"\0")
+          sqlite_path = re.compile(rb"\.sqlite3?(?:[-.].*)?$", re.IGNORECASE)
           matches = [
               path.decode("utf-8", errors="backslashreplace")
               for path in tracked
@@ -53,9 +49,6 @@ jobs:
                   print(f"Tracked database path: {path}")
               sys.exit(1)
           print("No tracked SQLite database or sidecar paths found.")
-
-          if not any(path for path in tracked):
-              print("The repository tree contains no tracked paths.")
           PY
 
       - name: Test metadata scanner with synthetic data only
