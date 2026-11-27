@@ -293,8 +293,8 @@ class AIChatViewTests(TestCase):
             response = self.post_json({"message": sensitive_marker})
 
         self.assertEqual(response.status_code, 503)
-        self.assertNotIn(sensitive_marker, "\\n".join(captured.output))
-        self.assertIn("RuntimeError", "\\n".join(captured.output))
+        self.assertNotIn(sensitive_marker, "\n".join(captured.output))
+        self.assertIn("RuntimeError", "\n".join(captured.output))
 
     def test_post_requires_a_csrf_token(self):
         """The API must retain the CSRF middleware's default protection."""
@@ -391,7 +391,7 @@ class AIServiceTests(TestCase):
             response = ai_service.generate_therapy_response(sensitive_marker)
 
         self.assertIn("courage", response.lower())
-        log_output = "\\n".join(captured.output)
+        log_output = "\n".join(captured.output)
         self.assertNotIn(sensitive_marker, log_output)
         self.assertIn("ConnectionError", log_output)
 
@@ -404,7 +404,7 @@ class AIServiceTests(TestCase):
             result = ai_service.analyze_sentiment(sensitive_marker)
 
         self.assertEqual(result, {"label": "NEUTRAL", "score": 0.5})
-        log_output = "\\n".join(captured.output)
+        log_output = "\n".join(captured.output)
         self.assertNotIn(sensitive_marker, log_output)
         self.assertIn("RuntimeError", log_output)
 
