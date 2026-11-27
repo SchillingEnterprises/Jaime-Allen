@@ -328,13 +328,21 @@ class AIServiceTests(TestCase):
         self.assertIn("courage", response.lower())
 
     @override_settings(AI_PROVIDER="openai", OPENAI_API_KEY="test-only-key")
-    def test_openai_sdk_client_exposes_chat_completions_interface(self):
-        """Exercise the installed SDK client surface without a network request."""
+    @patch("therapy_app.ai_agents.OpenAI")
+    def test_openai_sdk_client_has_a_bounded_timeout_and_no_automatic_retries(
+        self, mock_openai
+    ):
+        """Keep public AI requests bounded and avoid retrying sensitive prompts."""
+        mock_openai.return_value = Mock()
         ai_service = TherapyAI(client=None)
 
         self.assertTrue(ai_service.ai_enabled)
         self.assertIsNotNone(ai_service.client)
-        self.assertTrue(callable(ai_service.client.chat.completions.create))
+        mock_openai.assert_called_once_with(
+            api_key="test-only-key",
+            timeout=45.0,
+            max_retries=0,
+        )
 
     def test_configured_client_response_is_returned(self):
         provider_client = Mock()
