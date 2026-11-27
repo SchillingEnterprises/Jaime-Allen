@@ -5,6 +5,7 @@ A local `.env` file is supported for development and must never be committed.
 """
 
 import os
+from collections.abc import Mapping
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -35,6 +36,65 @@ def _validate_signing_key(value: str) -> str:
             "SECRET_KEY must be at least 50 characters and contain at least 5 distinct characters."
         )
     return value
+
+
+def _database_configuration(
+    debug: bool, environ: Mapping[str, str]
+) -> dict[str, dict[str, object]]:
+    """Keep SQLite local-only and require TLS PostgreSQL for non-debug runs."""
+    if debug:
+        return {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": environ.get("SQLITE_DB_NAME") or BASE_DIR / "db.sqlite3",
+            }
+        }
+
+    required = ("DB_NAME", "DB_USER", "DB_PASSWORD", "DB_HOST")
+    missing = [name for name in required if not environ.get(name, "").strip()]
+    if missing:
+        raise ImproperlyConfigured(
+            "Production PostgreSQL requires: " + ", ".join(missing)
+        )
+
+    raw_port = environ.get("DB_PORT", "5432").strip() or "5432"
+    try:
+        port = int(raw_port)
+    except ValueError as exc:
+        raise ImproperlyConfigured(
+            "DB_PORT must be an integer between 1 and 65535."
+        ) from exc
+    if not 1 <= port <= 65_535:
+        raise ImproperlyConfigured(
+            "DB_PORT must be an integer between 1 and 65535."
+        )
+
+    sslmode = (
+        environ.get("DB_SSLMODE", "verify-full").strip().lower() or "verify-full"
+    )
+    if sslmode not in {"require", "verify-ca", "verify-full"}:
+        raise ImproperlyConfigured(
+            "DB_SSLMODE must enable TLS (require, verify-ca, or verify-full)."
+        )
+
+    options: dict[str, str] = {"sslmode": sslmode}
+    sslrootcert = environ.get("DB_SSLROOTCERT", "").strip()
+    if sslrootcert:
+        options["sslrootcert"] = sslrootcert
+
+    return {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": environ["DB_NAME"].strip(),
+            "USER": environ["DB_USER"].strip(),
+            "PASSWORD": environ["DB_PASSWORD"],
+            "HOST": environ["DB_HOST"].strip(),
+            "PORT": str(port),
+            "CONN_MAX_AGE": 60,
+            "CONN_HEALTH_CHECKS": True,
+            "OPTIONS": options,
+        }
+    }
 
 
 # DEBUG is intentionally off by default; enable it explicitly for local work.
@@ -109,14 +169,9 @@ TEMPLATES = [
     },
 ]
 
-# SQLite is retained to preserve the existing local-development data model.
-# Configure a managed production database before deploying a multi-worker app.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# SQLite is restricted to local development and CI. Non-debug deployments must
+# supply a private, TLS-enabled PostgreSQL database configuration.
+DATABASES = _database_configuration(DEBUG, os.environ)
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
