@@ -172,10 +172,10 @@ class AIChatView(View):
                     sentiment=sentiment,
                     ai_response=ai_response,
                 )
-        except Exception:
-            # Do not log request bodies or provider response data: messages may
-            # contain personal information. The client receives a safe fallback.
-            logger.exception("AI chat processing failed.")
+        except Exception as exc:
+            # Exception messages and tracebacks can contain prompts or provider
+            # payloads. Log only the exception class, never its text or traceback.
+            logger.error("AI chat processing failed (%s).", type(exc).__name__)
             return JsonResponse(
                 {"response": FALLBACK_AI_RESPONSE, "success": False},
                 status=503,
