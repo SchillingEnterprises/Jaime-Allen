@@ -34,7 +34,7 @@ jobs:
         working-directory: therapy_site
     env:
       DEBUG: "true"
-      SECRET_KEY: "ci-only-ephemeral-key-not-for-production"
+      SECRET_KEY: "ci-only-therapy-test-key-with-at-least-fifty-characters-and-varied-alphabet"
       OPENAI_API_KEY: ""
     steps:
       - name: Check out source
