@@ -21,7 +21,7 @@ Before enabling the widget for public use:
 - Disclose which AI provider processes each message.
 - Obtain affirmative consent before transmitting personal content.
 - Define access, retention, deletion, backup, and incident-response practices.
-- Do not log message bodies, provider payloads, or personal content.
+- Do not log message bodies, provider payloads, personal content, or exception text and tracebacks originating in AI/analyzer calls. Operational error logs may include only the exception class name.
 - Keep real messages out of fixtures, issues, logs, screenshots, and CI artifacts.
 - Review the provider's data-processing terms and the application's privacy notice.
 
