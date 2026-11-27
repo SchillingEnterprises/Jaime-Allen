@@ -40,6 +40,8 @@ The optional AI widget is a communication-support aid, not therapy, diagnosis, t
 - Chat messages are not written to the application database unless `STORE_CHAT_INTERACTIONS=true` is deliberately configured.
 - Disabling database persistence does not prevent the selected provider from processing the message to generate a response.
 - Prompts and provider payloads must not be written to application logs.
+- The anonymous chat endpoint permits at most five POST attempts per minute per transport peer; excess attempts receive HTTP 429 before AI-provider processing.
+- This is a per-process best-effort safeguard with Django's default local-memory cache. Production must use a shared cache for cross-worker enforcement and an edge/WAF rate limit; do not rely on the application limit alone.
 
 Do not enable public use until a qualified professional and responsible operator have reviewed the content, consent language, privacy notice, provider data handling, retention/deletion policy, and escalation boundaries.
 

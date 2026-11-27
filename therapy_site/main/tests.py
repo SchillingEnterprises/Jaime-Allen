@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 import requests
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.db import IntegrityError
@@ -157,7 +158,11 @@ class AIChatViewTests(TestCase):
     """Exercise validation, CSRF protection, persistence, and endpoint failures."""
 
     def setUp(self):
+        cache.clear()
         self.endpoint = reverse("ai_chat")
+
+    def tearDown(self):
+        cache.clear()
 
     def post_json(self, payload):
         """Submit a JSON object using Django's test HTTP client."""
@@ -174,6 +179,42 @@ class AIChatViewTests(TestCase):
 
         self.assertEqual(response.status_code, 405)
         self.assertEqual(response["Allow"], "POST")
+
+    @patch("main.views.therapy_ai.generate_therapy_response")
+    @patch("main.views.therapy_ai.analyze_sentiment")
+    def test_chat_endpoint_limits_each_remote_address_to_five_requests_per_minute(
+        self, mock_analyze_sentiment, mock_generate_response
+    ):
+        mock_analyze_sentiment.return_value = {"label": "NEUTRAL", "score": 0.5}
+        mock_generate_response.return_value = "A bounded test response."
+
+        for request_number in range(5):
+            with self.subTest(request_number=request_number + 1):
+                response = self.post_json({"message": f"Allowed request {request_number + 1}"})
+                self.assertEqual(response.status_code, 200)
+
+        limited = self.post_json({"message": "This sixth request must not reach the provider."})
+
+        self.assertEqual(limited.status_code, 429)
+        self.assertEqual(limited["Retry-After"], "60")
+        self.assertFalse(limited.json()["success"])
+        self.assertEqual(mock_analyze_sentiment.call_count, 5)
+        self.assertEqual(mock_generate_response.call_count, 5)
+
+    @patch("main.views.cache.add", side_effect=RuntimeError("private cache backend detail"))
+    @patch("main.views.therapy_ai.generate_therapy_response")
+    def test_chat_fails_closed_when_rate_limiter_is_unavailable(
+        self, mock_generate_response, mock_cache_add
+    ):
+        with self.assertLogs("main.views", level="ERROR") as captured:
+            response = self.post_json({"message": "Do not process while the limiter is unavailable."})
+
+        self.assertEqual(response.status_code, 503)
+        self.assertFalse(response.json()["success"])
+        mock_generate_response.assert_not_called()
+        log_output = "\n".join(captured.output)
+        self.assertIn("RuntimeError", log_output)
+        self.assertNotIn("private cache backend detail", log_output)
 
     def test_non_json_content_type_is_rejected(self):
         response = self.client.post(

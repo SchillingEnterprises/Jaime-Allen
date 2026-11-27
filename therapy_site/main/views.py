@@ -1,11 +1,13 @@
 """HTTP views for the public therapy website and its AI-support endpoint."""
 
+import hashlib
 import json
 import logging
 import uuid
 from typing import Any, ClassVar
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import RequestDataTooBig
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -22,10 +24,41 @@ logger = logging.getLogger(__name__)
 MAX_CHAT_MESSAGE_LENGTH = 2_000
 MAX_CHAT_REQUEST_BYTES = 16_384
 MAX_SESSION_ID_LENGTH = 100
+CHAT_RATE_LIMIT_REQUESTS = 5
+CHAT_RATE_LIMIT_WINDOW_SECONDS = 60
 FALLBACK_AI_RESPONSE = (
     "Thank you for sharing. I appreciate you reaching out. "
     "Please consider discussing this further with your qualified therapist."
 )
+
+
+
+def _consume_chat_rate_limit(request):
+    """Count one chat attempt for the request's transport peer in a fixed window.
+
+    The address is hashed before it becomes part of a cache key. Only REMOTE_ADDR
+    is used; forwarded headers are not trusted because clients can spoof them
+    unless a verified proxy overwrites those headers.
+    """
+    remote_address = request.META.get("REMOTE_ADDR", "")
+    address_digest = hashlib.sha256(remote_address.encode("utf-8")).hexdigest()[:32]
+    cache_key = f"ai-chat-rate:{address_digest}"
+
+    try:
+        if cache.add(cache_key, 1, timeout=CHAT_RATE_LIMIT_WINDOW_SECONDS):
+            return 1
+
+        try:
+            return cache.incr(cache_key)
+        except ValueError:
+            # The fixed-window key may expire between add() and incr().
+            if cache.add(cache_key, 1, timeout=CHAT_RATE_LIMIT_WINDOW_SECONDS):
+                return 1
+            return cache.incr(cache_key)
+    except Exception as exc:  # noqa: BLE001
+        # Fail closed if the cost-control mechanism is unavailable.
+        logger.error("AI chat rate limiter failed (%s).", type(exc).__name__)
+        return None
 
 
 @ensure_csrf_cookie
@@ -86,6 +119,23 @@ class AIChatView(View):
 
     def post(self, request):
         """Validate and process a bounded JSON chat request."""
+        attempts = _consume_chat_rate_limit(request)
+        if attempts is None:
+            return JsonResponse(
+                {"error": "The chat service is temporarily unavailable.", "success": False},
+                status=503,
+            )
+        if attempts > CHAT_RATE_LIMIT_REQUESTS:
+            response = JsonResponse(
+                {
+                    "error": "Too many chat requests. Please wait before trying again.",
+                    "success": False,
+                },
+                status=429,
+            )
+            response["Retry-After"] = str(CHAT_RATE_LIMIT_WINDOW_SECONDS)
+            return response
+
         if request.content_type != "application/json":
             return JsonResponse(
                 {"error": "Content-Type must be application/json.", "success": False},
