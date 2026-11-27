@@ -280,6 +280,22 @@ class AIChatViewTests(TestCase):
         self.assertFalse(response.json()["success"])
         self.assertEqual(ClientInteraction.objects.count(), 0)
 
+    @patch("main.views.therapy_ai.generate_therapy_response")
+    @patch("main.views.therapy_ai.analyze_sentiment")
+    def test_processing_failure_does_not_log_message_or_exception_text(
+        self, mock_analyze_sentiment, mock_generate_response
+    ):
+        sensitive_marker = "private-message-must-not-appear-in-logs"
+        mock_analyze_sentiment.return_value = {"label": "NEUTRAL", "score": 0.5}
+        mock_generate_response.side_effect = RuntimeError(sensitive_marker)
+
+        with self.assertLogs("main.views", level="ERROR") as captured:
+            response = self.post_json({"message": sensitive_marker})
+
+        self.assertEqual(response.status_code, 503)
+        self.assertNotIn(sensitive_marker, "\\n".join(captured.output))
+        self.assertIn("RuntimeError", "\\n".join(captured.output))
+
     def test_post_requires_a_csrf_token(self):
         """The API must retain the CSRF middleware's default protection."""
         csrf_enforcing_client = Client(enforce_csrf_checks=True)
@@ -363,6 +379,34 @@ class AIServiceTests(TestCase):
             ai_service.analyze_sentiment("A sample message."),
             {"label": "NEUTRAL", "score": 0.5},
         )
+
+    @override_settings(AI_PROVIDER="ollama", OLLAMA_BASE_URL="http://localhost:11434")
+    @patch("therapy_app.ai_agents.requests.post")
+    def test_provider_failure_does_not_log_prompt_or_exception_text(self, mock_post):
+        sensitive_marker = "private-provider-prompt-must-not-appear-in-logs"
+        mock_post.side_effect = requests.ConnectionError(sensitive_marker)
+        ai_service = TherapyAI(client=None)
+
+        with self.assertLogs("therapy_app.ai_agents", level="ERROR") as captured:
+            response = ai_service.generate_therapy_response(sensitive_marker)
+
+        self.assertIn("courage", response.lower())
+        log_output = "\\n".join(captured.output)
+        self.assertNotIn(sensitive_marker, log_output)
+        self.assertIn("ConnectionError", log_output)
+
+    def test_sentiment_failure_does_not_log_message_or_exception_text(self):
+        sensitive_marker = "private-sentiment-text-must-not-appear-in-logs"
+        analyzer = Mock(side_effect=RuntimeError(sensitive_marker))
+        ai_service = TherapyAI(client=None, sentiment_analyzer=analyzer)
+
+        with self.assertLogs("therapy_app.ai_agents", level="ERROR") as captured:
+            result = ai_service.analyze_sentiment(sensitive_marker)
+
+        self.assertEqual(result, {"label": "NEUTRAL", "score": 0.5})
+        log_output = "\\n".join(captured.output)
+        self.assertNotIn(sensitive_marker, log_output)
+        self.assertIn("RuntimeError", log_output)
 
     def test_content_optimizer_returns_known_guidance(self):
         guidance = ContentOptimizer.optimize_content("serenity")
