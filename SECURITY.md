@@ -21,6 +21,7 @@ Before enabling the widget for public use:
 - Disclose which AI provider processes each message.
 - Obtain affirmative consent before transmitting personal content.
 - Define access, retention, deletion, backup, and incident-response practices.
+- Keep the anonymous chat endpoint's per-process limit of five POST attempts per minute as defense in depth; configure a shared cache for multi-worker enforcement and an edge/WAF rate limit before public production use.
 - Do not log message bodies, provider payloads, personal content, or exception text and tracebacks originating in AI/analyzer calls. Operational error logs may include only the exception class name.
 - Keep real messages out of fixtures, issues, logs, screenshots, and CI artifacts.
 - Review the provider's data-processing terms and the application's privacy notice.
@@ -33,7 +34,7 @@ The AI widget is not a clinician, diagnostic system, treatment provider, crisis 
 
 ## Production requirements
 
-The Django prototype is not production-approved. Before handling real user information, establish an approved hosting environment, private managed database, secure secret management, authentication and authorization, HTTPS, encrypted backups, audit and retention controls, monitoring, and appropriate review of external AI or messaging providers.
+The Django prototype is not production-approved. Before handling real user information, establish an approved hosting environment, private managed database, secure secret management, authentication and authorization, HTTPS, encrypted backups, a shared cache and edge/WAF rate limiting for the anonymous AI endpoint, audit and retention controls, monitoring, and appropriate review of external AI or messaging providers.
 
 Do not disable existing access controls or production checks to make a deployment pass.
 
