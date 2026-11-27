@@ -72,9 +72,9 @@ def _database_configuration(
     sslmode = (
         environ.get("DB_SSLMODE", "verify-full").strip().lower() or "verify-full"
     )
-    if sslmode not in {"require", "verify-ca", "verify-full"}:
+    if sslmode not in {"verify-ca", "verify-full"}:
         raise ImproperlyConfigured(
-            "DB_SSLMODE must enable TLS (require, verify-ca, or verify-full)."
+            "DB_SSLMODE must verify the server certificate (verify-ca or verify-full)."
         )
 
     options: dict[str, str] = {"sslmode": sslmode}
