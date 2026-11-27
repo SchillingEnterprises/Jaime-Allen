@@ -87,8 +87,12 @@ class TherapyAI:
                     timeout=45.0,
                     max_retries=0,
                 )
-            except Exception:
-                logger.exception("Could not initialize the configured AI provider.")
+            except Exception as exc:
+                # Provider initialization errors can include credential details.
+                logger.error(
+                    "Could not initialize the configured AI provider (%s).",
+                    type(exc).__name__,
+                )
 
     @property
     def ai_enabled(self) -> bool:
@@ -107,8 +111,9 @@ class TherapyAI:
         try:
             analysis = self.sentiment_analyzer(message[:512])
             return analysis[0] if analysis else NEUTRAL_SENTIMENT.copy()
-        except Exception:
-            logger.exception("Sentiment analysis failed.")
+        except Exception as exc:
+            # Analyzer exceptions can echo the supplied message.
+            logger.error("Sentiment analysis failed (%s).", type(exc).__name__)
             return NEUTRAL_SENTIMENT.copy()
 
     def generate_therapy_response(
@@ -159,11 +164,12 @@ class TherapyAI:
 
             if isinstance(response_text, str) and response_text.strip():
                 return response_text.strip()
-        except (requests.RequestException, ValueError):
-            # Do not write user prompts or provider payloads to application logs.
-            logger.exception("Local AI provider request failed.")
-        except Exception:
-            logger.exception("AI response generation failed.")
+        except (requests.RequestException, ValueError) as exc:
+            # Provider errors may echo request bodies; retain only the class name.
+            logger.error("Local AI provider request failed (%s).", type(exc).__name__)
+        except Exception as exc:
+            # Avoid logging prompt text, provider responses, or exception tracebacks.
+            logger.error("AI response generation failed (%s).", type(exc).__name__)
 
         return AI_FALLBACK_RESPONSE
 
