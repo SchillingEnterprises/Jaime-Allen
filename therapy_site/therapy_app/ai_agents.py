@@ -82,7 +82,11 @@ class TherapyAI:
             and settings.OPENAI_API_KEY
         ):
             try:
-                self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                self.client = OpenAI(
+                    api_key=settings.OPENAI_API_KEY,
+                    timeout=45.0,
+                    max_retries=0,
+                )
             except Exception:
                 logger.exception("Could not initialize the configured AI provider.")
 
