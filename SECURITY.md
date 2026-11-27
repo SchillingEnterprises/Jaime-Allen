@@ -36,6 +36,8 @@ The AI widget is not a clinician, diagnostic system, treatment provider, crisis 
 
 The Django prototype is not production-approved. Before handling real user information, establish an approved hosting environment, private managed database, secure secret management, authentication and authorization, HTTPS, encrypted backups, a shared cache and edge/WAF rate limiting for the anonymous AI endpoint, audit and retention controls, monitoring, and appropriate review of external AI or messaging providers.
 
+Non-debug settings now fail at startup unless `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `DB_HOST` configure PostgreSQL. TLS is mandatory: `DB_SSLMODE` accepts only `require`, `verify-ca`, or `verify-full`, and defaults to certificate- and hostname-verifying `verify-full`. Store connection secrets in the host's secret manager. Local SQLite remains for `DEBUG=true` development and CI only.
+
 Do not disable existing access controls or production checks to make a deployment pass.
 
 ## Supported framework
