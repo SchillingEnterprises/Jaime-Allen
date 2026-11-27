@@ -87,7 +87,8 @@ class TherapyAI:
                     timeout=45.0,
                     max_retries=0,
                 )
-            except Exception as exc:
+            # Initialization is an external-provider boundary; preserve the safe fallback.
+            except Exception as exc:  # noqa: BLE001
                 # Provider initialization errors can include credential details.
                 logger.error(
                     "Could not initialize the configured AI provider (%s).",
@@ -111,7 +112,8 @@ class TherapyAI:
         try:
             analysis = self.sentiment_analyzer(message[:512])
             return analysis[0] if analysis else NEUTRAL_SENTIMENT.copy()
-        except Exception as exc:
+        # Sentiment is optional; keep the chat request safe if the analyzer fails.
+        except Exception as exc:  # noqa: BLE001
             # Analyzer exceptions can echo the supplied message.
             logger.error("Sentiment analysis failed (%s).", type(exc).__name__)
             return NEUTRAL_SENTIMENT.copy()
@@ -167,7 +169,8 @@ class TherapyAI:
         except (requests.RequestException, ValueError) as exc:
             # Provider errors may echo request bodies; retain only the class name.
             logger.error("Local AI provider request failed (%s).", type(exc).__name__)
-        except Exception as exc:
+        # Third-party SDK failures must not escape the controlled fallback boundary.
+        except Exception as exc:  # noqa: BLE001
             # Avoid logging prompt text, provider responses, or exception tracebacks.
             logger.error("AI response generation failed (%s).", type(exc).__name__)
 
