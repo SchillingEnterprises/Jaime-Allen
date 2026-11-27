@@ -24,8 +24,10 @@ class PublicPublicationBoundaryTests(unittest.TestCase):
         workflow = (
             ROOT / ".github" / "workflows" / "sqlite-privacy-metadata.yml"
         ).read_text(encoding="utf-8")
-        self.assertIn("Allow only removal of the historical tracked SQLite file", workflow)
-        self.assertIn("never modified or replaced", workflow)
+        self.assertIn('["git", "ls-files", "-z"]', workflow)
+        self.assertIn("Tracked SQLite database or sidecar files are prohibited.", workflow)
+        self.assertIn("Only Git path metadata was inspected; file contents were not opened.", workflow)
+        self.assertIn("Never open, scan, or print database contents.", workflow)
 
     def test_static_site_validation_is_separate_from_django_ci(self):
         workflow = (
