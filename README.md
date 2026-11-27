@@ -62,7 +62,9 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env` and set local development values. Never commit real secrets.
+Copy `.env.example` to `.env` and set local development values. Never commit real secrets. Local `DEBUG=true` development and CI use SQLite.
+
+For any non-debug deployment, settings now fail closed unless a PostgreSQL database is configured with `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `DB_HOST`. The default `DB_SSLMODE=verify-full` verifies the database certificate and hostname; use `DB_SSLROOTCERT` when the provider supplies a custom CA. Only certificate-verifying `verify-ca` and `verify-full` modes are accepted; `verify-ca` is available for providers using a private CA when hostname verification is not supported. Unverified and plaintext PostgreSQL modes are rejected. Keep the database password and connection details in the deployment secret manager, not in the repository.
 
 ```bash
 python manage.py migrate

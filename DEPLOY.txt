@@ -23,6 +23,12 @@ Separate Django prototype:
   - therapy_site/ is excluded from the Pages build through _config.yml.
   - It requires independent hosting, database, secret management, authentication,
     privacy, security, and clinical review before any public use.
+  - Local development and CI use SQLite only when DEBUG=true. A non-debug
+    deployment requires DB_NAME, DB_USER, DB_PASSWORD, and DB_HOST for a managed
+    PostgreSQL service; startup fails rather than silently using SQLite.
+  - PostgreSQL connections require TLS. DB_SSLMODE defaults to verify-full;
+    DB_SSLROOTCERT may point to the provider's CA certificate. Store all database
+    credentials in the host's secret manager, never in this repository.
   - The development SQLite file has been removed from the current default-branch
     tree. Run migrations and `python manage.py init_services` to create a fresh
     local database; create a local admin separately.
