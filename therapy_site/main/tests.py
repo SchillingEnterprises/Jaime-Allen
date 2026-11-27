@@ -15,7 +15,11 @@ from django.urls import reverse
 
 from main.models import ClientInteraction, Service
 from therapy_app.ai_agents import ContentOptimizer, TherapyAI
-from therapy_app.settings import _environment_flag, _validate_signing_key
+from therapy_app.settings import (
+    _database_configuration,
+    _environment_flag,
+    _validate_signing_key,
+)
 
 
 class EnvironmentFlagTests(TestCase):
@@ -43,6 +47,90 @@ class EnvironmentFlagTests(TestCase):
                 self.assertRaises(ImproperlyConfigured),
             ):
                 _environment_flag("FLAG")
+
+
+class DatabaseConfigurationTests(TestCase):
+    """Production must fail closed unless a TLS-enabled managed database is set."""
+
+    def test_debug_mode_uses_local_sqlite(self):
+        database = _database_configuration(
+            True,
+            {"SQLITE_DB_NAME": "/tmp/therapy-test.sqlite3"},
+        )
+
+        self.assertEqual(
+            database["default"]["ENGINE"],
+            "django.db.backends.sqlite3",
+        )
+        self.assertEqual(database["default"]["NAME"], "/tmp/therapy-test.sqlite3")
+
+    def test_production_requires_all_postgresql_connection_values(self):
+        with self.assertRaisesRegex(
+            ImproperlyConfigured,
+            "DB_NAME, DB_USER, DB_PASSWORD, DB_HOST",
+        ):
+            _database_configuration(False, {})
+
+    def test_production_uses_tls_postgresql_and_connection_health_checks(self):
+        database = _database_configuration(
+            False,
+            {
+                "DB_NAME": "therapy",
+                "DB_USER": "therapy_app",
+                "DB_PASSWORD": "test-only-database-password",
+                "DB_HOST": "db.example.test",
+                "DB_PORT": "6432",
+                "DB_SSLMODE": "verify-full",
+                "DB_SSLROOTCERT": "/etc/ssl/certs/managed-db-ca.pem",
+            },
+        )["default"]
+
+        self.assertEqual(database["ENGINE"], "django.db.backends.postgresql")
+        self.assertEqual(database["NAME"], "therapy")
+        self.assertEqual(database["USER"], "therapy_app")
+        self.assertEqual(database["HOST"], "db.example.test")
+        self.assertEqual(database["PORT"], "6432")
+        self.assertEqual(database["CONN_MAX_AGE"], 60)
+        self.assertTrue(database["CONN_HEALTH_CHECKS"])
+        self.assertEqual(
+            database["OPTIONS"],
+            {
+                "sslmode": "verify-full",
+                "sslrootcert": "/etc/ssl/certs/managed-db-ca.pem",
+            },
+        )
+
+    def test_production_defaults_to_certificate_verifying_tls(self):
+        database = _database_configuration(
+            False,
+            {
+                "DB_NAME": "therapy",
+                "DB_USER": "therapy_app",
+                "DB_PASSWORD": "test-only-database-password",
+                "DB_HOST": "db.example.test",
+            },
+        )["default"]
+
+        self.assertEqual(database["OPTIONS"], {"sslmode": "verify-full"})
+        self.assertEqual(database["PORT"], "5432")
+
+    def test_production_rejects_disabled_tls_and_invalid_ports(self):
+        values = {
+            "DB_NAME": "therapy",
+            "DB_USER": "therapy_app",
+            "DB_PASSWORD": "test-only-database-password",
+            "DB_HOST": "db.example.test",
+        }
+        invalid_values = (
+            {"DB_SSLMODE": "disable"},
+            {"DB_SSLMODE": "prefer"},
+            {"DB_PORT": "not-a-port"},
+            {"DB_PORT": "70000"},
+            {"DB_PORT": "0"},
+        )
+        for invalid in invalid_values:
+            with self.subTest(invalid=invalid), self.assertRaises(ImproperlyConfigured):
+                _database_configuration(False, {**values, **invalid})
 
 
 class SigningKeyTests(TestCase):
