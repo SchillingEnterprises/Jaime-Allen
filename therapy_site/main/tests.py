@@ -124,6 +124,7 @@ class DatabaseConfigurationTests(TestCase):
         invalid_values = (
             {"DB_SSLMODE": "disable"},
             {"DB_SSLMODE": "prefer"},
+            {"DB_SSLMODE": "require"},
             {"DB_PORT": "not-a-port"},
             {"DB_PORT": "70000"},
             {"DB_PORT": "0"},
