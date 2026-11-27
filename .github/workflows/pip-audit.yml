@@ -5,6 +5,9 @@ on:
     branches: [master]
   push:
     branches: [master]
+  schedule:
+    - cron: "17 6 * * 1" # Every Monday at 06:17 UTC.
+  workflow_dispatch:
 
 permissions:
   contents: read
