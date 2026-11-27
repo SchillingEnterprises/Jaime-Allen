@@ -15,7 +15,7 @@ from django.urls import reverse
 
 from main.models import ClientInteraction, Service
 from therapy_app.ai_agents import ContentOptimizer, TherapyAI
-from therapy_app.settings import _environment_flag
+from therapy_app.settings import _environment_flag, _validate_signing_key
 
 
 class EnvironmentFlagTests(TestCase):
@@ -43,6 +43,22 @@ class EnvironmentFlagTests(TestCase):
                 self.assertRaises(ImproperlyConfigured),
             ):
                 _environment_flag("FLAG")
+
+
+class SigningKeyTests(TestCase):
+    """Explicit deployment keys must meet minimum strength requirements."""
+
+    def test_short_signing_key_is_rejected(self):
+        with self.assertRaisesRegex(ImproperlyConfigured, "at least 50 characters"):
+            _validate_signing_key("short-secret")
+
+    def test_low_diversity_signing_key_is_rejected(self):
+        with self.assertRaisesRegex(ImproperlyConfigured, "5 distinct characters"):
+            _validate_signing_key(("A" * 59) + "b")
+
+    def test_long_high_diversity_signing_key_is_accepted(self):
+        key = "test-only-therapy-signing-key-with-more-than-fifty-characters"
+        self.assertEqual(_validate_signing_key(key), key)
 
 
 class ServiceModelTests(TestCase):

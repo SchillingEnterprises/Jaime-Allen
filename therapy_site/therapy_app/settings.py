@@ -28,6 +28,15 @@ def _environment_flag(name: str, default: bool = False) -> bool:
     raise ImproperlyConfigured(f"{name} must be a boolean value.")
 
 
+def _validate_signing_key(value: str) -> str:
+    """Reject weak, explicitly supplied signing keys before app startup."""
+    if len(value) < 50 or len(set(value)) < 5:
+        raise ImproperlyConfigured(
+            "SECRET_KEY must be at least 50 characters and contain at least 5 distinct characters."
+        )
+    return value
+
+
 # DEBUG is intentionally off by default; enable it explicitly for local work.
 DEBUG = _environment_flag("DEBUG", default=False)
 
@@ -41,6 +50,8 @@ if not SECRET_KEY:
             "Set SECRET_KEY in the environment before starting with DEBUG=False."
         )
     SECRET_KEY = get_random_secret_key()
+else:
+    SECRET_KEY = _validate_signing_key(SECRET_KEY)
 
 # Comma-separated hostnames supplied by the deployment environment.
 ALLOWED_HOSTS = [
