@@ -172,7 +172,8 @@ class AIChatView(View):
                     sentiment=sentiment,
                     ai_response=ai_response,
                 )
-        except Exception as exc:
+        # Keep the public endpoint fail-closed for any provider or storage error.
+        except Exception as exc:  # noqa: BLE001
             # Exception messages and tracebacks can contain prompts or provider
             # payloads. Log only the exception class, never its text or traceback.
             logger.error("AI chat processing failed (%s).", type(exc).__name__)
